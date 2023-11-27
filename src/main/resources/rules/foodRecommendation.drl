@@ -1,0 +1,154 @@
+package rules;
+
+import com.upm.momcarerecommendation.domain.MotherRequest
+import com.upm.momcarerecommendation.domain.DetectedDisease
+import com.upm.momcarerecommendation.domain.FoodRecommend
+import com.upm.momcarerecommendation.domain.NutritionRecommend
+
+// Base Recommendation For Mother (in mg)
+rule "Basic Nutrition Recommendation for Mother"
+    when
+        $mother : MotherRequest()
+    then
+        insert(new NutritionRecommend("nutrients[CA]", "1000-2000", $mother));
+        insert(new NutritionRecommend("nutrients[NA]", "2300", $mother));
+        insert(new NutritionRecommend("nutrients[FE]", "27-500", $mother));
+        insert(new NutritionRecommend("nutrients[VITA_RAE]", "770-1000", $mother));     // in mcg
+        insert(new NutritionRecommend("nutrients[VITC]", "85-1000", $mother));
+        insert(new NutritionRecommend("nutrients[VITB6A]", "1.9-5", $mother));
+end
+
+rule "Basic Nutrition Recommendation for Pregnant"
+    when
+        $mother : MotherRequest( isPregnant() )
+    then
+        insert(new NutritionRecommend("nutrients[PROCNT]", "75-200", $mother));      // in g-unit
+        insert(new NutritionRecommend("nutrients[VITD]", "15-50", $mother));          // in mcg
+        insert(new NutritionRecommend("nutrients[VITB12]", "2.6-5", $mother));       // in mcg
+        insert(new NutritionRecommend("nutrients[FOLAC]", "600-1000", $mother));        // in mcg
+
+//        insert(new NutritionRecommend("Iodine", 0.22, $mother));
+//        insert(new NutritionRecommend("Choline", 450, $mother));
+
+end
+
+rule "Basic Nutrition Recommendation for Postpartum Women"
+    when
+        $mother : MotherRequest( !isPregnant() )
+    then
+        insert(new NutritionRecommend("nutrients[PROCNT]", "46-100", $mother));
+        insert(new NutritionRecommend("nutrients[VITD]", "5-10", $mother));
+        insert(new NutritionRecommend("nutrients[VITB12]", "2-10", $mother));
+        insert(new NutritionRecommend("nutrients[FOLAC]", "400-1000", $mother));
+
+//        insert(new NutritionRecommend("Iodine", 0.15, $mother));
+//        insert(new NutritionRecommend("Choline", 425, $mother));
+
+end
+
+// Diet Recommendation based on health Condition
+rule "High Blood Pressure Diet"
+    when
+        $mother : MotherRequest()
+        DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother )
+        $sodiumIntake : NutritionRecommend( nutrition == "nutrients[NA]", mother == $mother )
+    then
+        $sodiumIntake.setQuantity("1500"); // Reduce sodium intake
+        insert(new FoodRecommend("health", "DASH", $mother));
+end
+
+rule "Diabetes Diet"
+    when
+        $mother : MotherRequest()
+        DetectedDisease( diseaseName == "Diabetes" , mother == $mother )
+    then
+//        insert(new FoodRecommend("Low glycaemic index (GI) food", "Increase", $mother));
+end
+
+rule "Iron Deficiency Anaemia Diet"
+    when
+        $mother : MotherRequest()
+        DetectedDisease( diseaseName == "Anaemia" , mother == $mother )
+        $ironIntake : NutritionRecommend( nutrition == "nutrients[FE]", mother == $mother )
+    then
+        $ironIntake.setQuantity("60-100");    // increase the iron intake
+//        insert(new FoodRecommend( "Vitamin C", "Increase", $mother));
+end
+
+
+// Avoid Food Based on Allergy
+rule "Avoid Food for Allergy"
+    when
+        $mother : MotherRequest( !allergyFood.isEmpty() )
+    then
+        for (String food : $mother.getAllergyFood()) {
+            insert(new FoodRecommend( "excluded", food, $mother));
+        }
+end
+
+
+// Avoid Food Based on Religious
+rule "Islamic Diet"
+    when
+        $mother : MotherRequest( dietReligious == "Islam" )
+    then
+        System.out.println($mother.getName() + " is having Islamic Diet");
+        insert(new FoodRecommend("health", "pork-free", $mother));
+end
+
+rule "Hindu Diet"
+    when
+        $mother : MotherRequest( dietReligious == "Hindu" )
+    then
+        System.out.println($mother.getName() + " is having Hindu Diet");
+        insert(new FoodRecommend("excluded", "beef", $mother));
+end
+
+rule "Vegetarian"
+    when
+        $mother : MotherRequest( dietReligious == "Vegetarian" )
+    then
+        System.out.println($mother.getName() + " is having Vegetarian Diet");
+        insert(new FoodRecommend("health", "vegetarian", $mother));
+end
+
+
+// Diet Recommendation for postpartum based on Breastfeeding or not
+rule "Postpartum Woman who BreastFeeding Diet"
+    when
+        $mother : MotherRequest( !isPregnant(), isBreastFeeding() )
+        $proteinIntake : NutritionRecommend( nutrition == "nutrients[PROCNT]", mother == $mother )
+        $folicAcidIntake : NutritionRecommend( nutrition == "nutrients[FOLAC]", mother == $mother )
+        $vitaminB12Intake : NutritionRecommend( nutrition == "nutrients[VITB12]", mother == $mother )
+
+//        $cholineIntake : NutritionRecommend( nutrition == "Choline", mother == $mother )
+//        $iodineIntake : NutritionRecommend( nutrition == "Iodine", mother == $mother )
+    then
+        System.out.println($mother.getName() + " is breastfeeding his child");
+
+        $proteinIntake.setQuantity("67-200"); // Increase Protein intake
+        $folicAcidIntake.setQuantity("500-700"); // Increase Folic Acid intake
+        $vitaminB12Intake.setQuantity("2.8-5"); // Increase Vitamin B12 intake
+
+//        $cholineIntake.setQuantity(550); // Increase Choline intake
+//        $iodineIntake.setQuantity(0.27); // Increase Iodine intake
+
+//        insert(new FoodRecommend("Water", "Increase", $mother));
+//        insert(new FoodRecommend("excluded", "Caffeine", $mother));
+end
+
+
+// Diet Recommendation for Pregnancy Mother in 2 & 3 trimester
+rule "Second Trimester Pregnant Diet"
+    when
+        $mother : MotherRequest( isPregnant(), trimester == 2)
+    then
+//        insert(new FoodRecommend("calories", "Increase", $mother));
+end
+
+rule "Third Trimester Pregnant Diet"
+    when
+        $mother : MotherRequest( isPregnant(), trimester == 3)
+    then
+//        insert(new FoodRecommend("Calorie", "Increase", $mother));
+end
