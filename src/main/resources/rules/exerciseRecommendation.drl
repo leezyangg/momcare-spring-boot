@@ -1,8 +1,8 @@
 package rules;
 
-import com.upm.momcarerecommendation.domain.MotherRequest
-import com.upm.momcarerecommendation.domain.DetectedDisease
-import com.upm.momcarerecommendation.domain.ExerciseRecommend
+import com.upm.momcarerecommendation.domain.model.MotherRequest
+import com.upm.momcarerecommendation.domain.model.DetectedDisease
+import com.upm.momcarerecommendation.domain.model.ExerciseRecommend
 
 // Exercise Recommendation based on Health Condition
 rule "Severe Blood Pressure Exercise"

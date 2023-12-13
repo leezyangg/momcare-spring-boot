@@ -13,7 +13,11 @@ import org.springframework.context.annotation.Configuration;
 public class DroolsConfig {
 
     private static final String DISEASE_DETECTION_RULES_PATH = "rules/diseaseDetection.drl";
-    private static final String FOOD_RECOMMENDATION_RULES_PATH = "rules/foodRecommendation.drl";
+    // private static final String FOOD_RECOMMENDATION_RULES_PATH = "rules/foodRecommendation.drl";
+
+    // to test whether the system is working:
+    private static final String FOOD_RECOMMENDATION_RULES_PATH = "rules/testingFoodRecommendation.drl";
+
     private static final String EXERCISE_RECOMMENDATION_RULES_PATH = "rules/exerciseRecommendation.drl";
     private static final KieServices kieServices = KieServices.Factory.get();
 

@@ -1,18 +1,20 @@
 package com.upm.momcarerecommendation.service.impl;
 
-import com.upm.momcarerecommendation.service.EdamamFoodApiService;
+import com.upm.momcarerecommendation.domain.model.RecipeApiResponse;
+import com.upm.momcarerecommendation.service.FoodApiService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
+import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
-public class EdamamFoodApiServiceImpl implements EdamamFoodApiService {
+public class EdamamFoodApiServiceImpl implements FoodApiService {
 
     private final WebClient webClient;
 
@@ -28,11 +30,13 @@ public class EdamamFoodApiServiceImpl implements EdamamFoodApiService {
     }
 
     @Override
-    public String getFoodRecipe(Map<String, String> foodQueryMap) {
+    public Mono<RecipeApiResponse> getFoodRecipe(Map<String, List<String>> foodQueryMap) {
         MultiValueMap<String, String> foodQueryParam = getStringStringMultiValueMap();
 
-        for (Map.Entry<String, String> entry : foodQueryMap.entrySet()) {
-            foodQueryParam.add(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : foodQueryMap.entrySet()) {
+            for (String value : entry.getValue()) {
+                foodQueryParam.add(entry.getKey(), value);
+            }
         }
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(baseUrl)
@@ -43,8 +47,7 @@ public class EdamamFoodApiServiceImpl implements EdamamFoodApiService {
         return webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(String.class)
-                .block();
+                .bodyToMono(RecipeApiResponse.class);
     }
 
     // set the necessary param into the MultiValueMap as the queryParam
@@ -52,7 +55,7 @@ public class EdamamFoodApiServiceImpl implements EdamamFoodApiService {
         MultiValueMap<String, String> foodQueryParam = new LinkedMultiValueMap<>();
 
         // remember to insert the API_KEY & APP_ID from the Edamam API &
-        // put inside the application.yml
+        // put inside the application.yml or application.properties
         foodQueryParam.add("app_id", appId);
         foodQueryParam.add("app_key", appKey);
 
@@ -60,13 +63,19 @@ public class EdamamFoodApiServiceImpl implements EdamamFoodApiService {
         foodQueryParam.add("type", "any");
         foodQueryParam.add("random", "true");
 
-        // this is the field wish to extract from the api
+        // these are the fields wish to be extracted from the api
         foodQueryParam.add("field", "label");
         foodQueryParam.add("field", "image");
+        foodQueryParam.add("field", "source");
         foodQueryParam.add("field", "url");
         foodQueryParam.add("field", "ingredientLines");
         foodQueryParam.add("field", "calories");
         foodQueryParam.add("field", "totalNutrients");
+        foodQueryParam.add("field", "totalTime");
+        foodQueryParam.add("field", "instructionLines");
+        foodQueryParam.add("field", "yield");
+        foodQueryParam.add("field", "dietLabels");
+        foodQueryParam.add("field", "healthLabels");
         return foodQueryParam;
     }
 }

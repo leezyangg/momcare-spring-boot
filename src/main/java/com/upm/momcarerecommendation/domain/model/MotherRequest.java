@@ -1,4 +1,4 @@
-package com.upm.momcarerecommendation.domain;
+package com.upm.momcarerecommendation.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class MotherRequest {
-    private String name;
     private int age;
     private String dietReligious;
     private List<String> historicalDisease = new ArrayList<>();

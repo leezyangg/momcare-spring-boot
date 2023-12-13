@@ -1,4 +1,4 @@
-package com.upm.momcarerecommendation.domain;
+package com.upm.momcarerecommendation.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

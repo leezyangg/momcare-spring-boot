@@ -1,4 +1,4 @@
-package com.upm.momcarerecommendation.domain;
+package com.upm.momcarerecommendation.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class NutritionRecommend {
-    private String nutrition;
-    private String quantity;
+public class FoodRecommend {
+    private String parameter;
+    private String value;
     private MotherRequest mother;
 }

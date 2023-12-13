@@ -1,9 +1,9 @@
 package rules;
 
-import com.upm.momcarerecommendation.domain.MotherRequest
-import com.upm.momcarerecommendation.domain.DetectedDisease
-import com.upm.momcarerecommendation.domain.FoodRecommend
-import com.upm.momcarerecommendation.domain.NutritionRecommend
+import com.upm.momcarerecommendation.domain.model.MotherRequest
+import com.upm.momcarerecommendation.domain.model.DetectedDisease
+import com.upm.momcarerecommendation.domain.model.FoodRecommend
+import com.upm.momcarerecommendation.domain.model.NutritionRecommend
 
 // Base Recommendation For Mother (in mg)
 rule "Basic Nutrition Recommendation for Mother"
@@ -53,7 +53,7 @@ rule "High Blood Pressure Diet"
         DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother )
         $sodiumIntake : NutritionRecommend( nutrition == "nutrients[NA]", mother == $mother )
     then
-        $sodiumIntake.setQuantity("1500"); // Reduce sodium intake
+        retract($sodiumIntake)
         insert(new FoodRecommend("health", "DASH", $mother));
 end
 
@@ -72,7 +72,6 @@ rule "Iron Deficiency Anaemia Diet"
         $ironIntake : NutritionRecommend( nutrition == "nutrients[FE]", mother == $mother )
     then
         $ironIntake.setQuantity("60-100");    // increase the iron intake
-//        insert(new FoodRecommend( "Vitamin C", "Increase", $mother));
 end
 
 
@@ -92,7 +91,7 @@ rule "Islamic Diet"
     when
         $mother : MotherRequest( dietReligious == "Islam" )
     then
-        System.out.println($mother.getName() + " is having Islamic Diet");
+        System.out.println("Having Islamic Diet");
         insert(new FoodRecommend("health", "pork-free", $mother));
 end
 
@@ -100,7 +99,7 @@ rule "Hindu Diet"
     when
         $mother : MotherRequest( dietReligious == "Hindu" )
     then
-        System.out.println($mother.getName() + " is having Hindu Diet");
+        System.out.println("Having Hindu Diet");
         insert(new FoodRecommend("excluded", "beef", $mother));
 end
 
@@ -108,7 +107,7 @@ rule "Vegetarian"
     when
         $mother : MotherRequest( dietReligious == "Vegetarian" )
     then
-        System.out.println($mother.getName() + " is having Vegetarian Diet");
+        System.out.println("Having Vegetarian Diet");
         insert(new FoodRecommend("health", "vegetarian", $mother));
 end
 
@@ -124,7 +123,7 @@ rule "Postpartum Woman who BreastFeeding Diet"
 //        $cholineIntake : NutritionRecommend( nutrition == "Choline", mother == $mother )
 //        $iodineIntake : NutritionRecommend( nutrition == "Iodine", mother == $mother )
     then
-        System.out.println($mother.getName() + " is breastfeeding his child");
+        System.out.println("Breastfeeding his child");
 
         $proteinIntake.setQuantity("67-200"); // Increase Protein intake
         $folicAcidIntake.setQuantity("500-700"); // Increase Folic Acid intake

@@ -15,8 +15,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create-drop   #change to "update" --> if you want to keep database for every web application restart
-    show-sql: true
+      ddl-auto: update        # change to "update" --> if you want to keep database for every web application restart
+    show-sql: false             #      "create-drop" --> for recreating & drop every time for every restart (Debugging)
+    properties:
+      hibernate:
+        format_sql: true
 
   main:
     web-application-type: servlet
