@@ -23,6 +23,7 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
                 .dietLabels(new ArrayList<>(recipe.getDietLabels()))
                 .healthLabels(new ArrayList<>(recipe.getHealthLabels()))
                 .ingredientLines(new ArrayList<>(recipe.getIngredientLines()))
+                .instructionLines(new ArrayList<>(recipe.getInstructionLines()))
                 .calories(recipe.getCalories())
                 .totalTime(recipe.getTotalTime())
                 .totalNutrients(mapNutrientsInfo(recipe.getTotalNutrients()))
@@ -39,6 +40,7 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
                 .dietLabels(new ArrayList<>(recipeEntity.getDietLabels()))
                 .healthLabels(new ArrayList<>(recipeEntity.getHealthLabels()))
                 .ingredientLines(new ArrayList<>(recipeEntity.getIngredientLines()))
+                .instructionLines(new ArrayList<>(recipeEntity.getInstructionLines()))
                 .calories(recipeEntity.getCalories())
                 .totalTime(recipeEntity.getTotalTime())
                 .totalNutrients(mapNutrientsInfoToApiResponse(recipeEntity.getTotalNutrients()));

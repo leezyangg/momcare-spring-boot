@@ -10,7 +10,6 @@ salience 1
         $mother : MotherRequest( bloodPressure.systolic >= 140, bloodPressure.diastolic >= 90 )
         not DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother)
     then
-        System.out.println("You are detected Mild Blood Pressure");
         insert(new DetectedDisease( "Blood Pressure" , "Mild", $mother));
 end
 
@@ -21,7 +20,6 @@ salience 5
         $mother : MotherRequest( bloodPressure.systolic >= 150, bloodPressure.diastolic >= 100)
         not DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother)
     then
-        System.out.println("Detected Moderate Blood Pressure");
         insert(new DetectedDisease( "Blood Pressure" , "Moderate", $mother));
 end
 
@@ -31,7 +29,6 @@ salience 10
         $mother : MotherRequest( bloodPressure.systolic >= 160, bloodPressure.diastolic >= 110)
         not DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother)
     then
-        System.out.println("Detected Severe Blood Pressure");
         insert(new DetectedDisease( "Blood Pressure" , "Severe", $mother));
 end
 
@@ -44,7 +41,6 @@ salience 1
         $mother : MotherRequest( isPregnant(), !historicalDisease.contains("Diabetes"), bloodSugar >= 5.1 )
         not DetectedDisease( diseaseName == "Diabetes" , mother == $mother)
     then
-        System.out.println("Detected Gestational Diabetes");
         insert(new DetectedDisease( "Diabetes", "Gestational", $mother));
 end
 
@@ -53,7 +49,6 @@ rule "Having Diabetes Before Pregnant or postpartum Diabetes"
         $mother : MotherRequest ( bloodSugar >= 5.1 )
         not DetectedDisease( diseaseName == "Diabetes", mother == $mother)
     then
-        System.out.println("Detected Diabetes");
         insert(new DetectedDisease( "Diabetes", $mother));
 end
 
@@ -64,7 +59,6 @@ rule "Iron Deficiency Anaemia for Trimester 1"
     when
         $mother : MotherRequest( isPregnant(), trimester == 1, haemoglobinLevel <= 11 )
     then
-        System.out.println("Detected Anaemia");
         insert(new DetectedDisease( "Anaemia", $mother));
 end
 
@@ -72,7 +66,6 @@ rule "Iron Deficiency Anaemia for Trimester 2"
     when
         $mother : MotherRequest( isPregnant(), trimester == 2, haemoglobinLevel <= 10.5 )
     then
-        System.out.println("Detected Anaemia");
         insert(new DetectedDisease( "Anaemia", $mother));
 end
 
@@ -80,6 +73,5 @@ rule "Iron Deficiency Anaemia for Trimester 3"
     when
         $mother : MotherRequest( isPregnant(), trimester == 3, haemoglobinLevel <= 10 )
     then
-        System.out.println("Detected Anaemia");
         insert(new DetectedDisease( "Anaemia", $mother));
 end

@@ -12,25 +12,28 @@ import java.util.*;
 
 @Service
 public class RecommendationServiceImpl implements RecommendationService {
-
     private final KieContainer kieContainer;
-
     public RecommendationServiceImpl(KieContainer kieContainer) {
         this.kieContainer = kieContainer;
     }
 
+
     @Override
     public Map<String, List<String>> generateFoodRecommendation(MotherRequest motherRequest) {
+
         KieSession kieSession = kieContainer.newKieSession();
         kieSession.insert(motherRequest);
         kieSession.fireAllRules();
         kieSession.dispose();
+        System.out.println(motherRequest.getDetectedDiseases());
 
         Collection<?> nutritionRecommendation = kieSession.getObjects(o-> o.getClass() == NutritionRecommend.class);
         Collection<?> foodRecommendation = kieSession.getObjects(o-> o.getClass() == FoodRecommend.class);
 
         return getStringStringMap(nutritionRecommendation, foodRecommendation);
     }
+
+
 
     // loop for inserting the foodRecommend & nutritionRecommendation into the recommendationMap
     // this is to get them to serve as the param

@@ -39,6 +39,7 @@ public class RecipeApiResponse {
         private List<String> instructionLines;
         private double calories;
         private double totalTime;
+        private double totalWeight;
         private Map<String, Nutrient> totalNutrients;
     }
 

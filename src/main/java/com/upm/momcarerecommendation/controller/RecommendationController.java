@@ -14,9 +14,16 @@ public class RecommendationController {
         this.recommendationCoordinatorService = recommendationCoordinatorService;
     }
 
+    // query local first then query api if non-exist
     @PostMapping("/foodrecommend")
     public Mono<RecipeApiResponse> getFoodRecommendation(@RequestBody MotherRequest motherRequest) {
         return recommendationCoordinatorService.getFoodRecommendation(motherRequest);
+    }
+
+    // query api directly
+    @PostMapping("/foodrecommendapi")
+    public Mono<RecipeApiResponse> getFoodRecommendationFromApi(@RequestBody MotherRequest motherRequest) {
+        return recommendationCoordinatorService.getFoodRecommendationFromApi(motherRequest);
     }
 
 }

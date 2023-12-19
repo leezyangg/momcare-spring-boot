@@ -6,10 +6,7 @@ import com.upm.momcarerecommendation.repository.RecipeRepositoryCustom;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +53,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         }
 
         addIngredientExclusionPredicates(criteria, criteriaBuilder, recipe, predicates);        // having minor bug --> we could only exclude the recipe having exactly thing we specified
+        addCaloriesPredicates(criteria, criteriaBuilder, recipe, predicates);
         addNutritionalPredicates(criteria, criteriaBuilder, recipe, predicates);
 
         query.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
@@ -90,11 +88,36 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         });
     }
 
+    private void addCaloriesPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
+        if (criteria.containsKey("calories")) {
+            Object value = criteria.get("calories");
+            if (value instanceof List) {
+                List<Range> ranges = (List<Range>) value;
+
+                Expression<Double> calories = recipe.get("calories");
+                Expression<Double> yield = recipe.get("yield");
+                Expression<Number> caloriesPerYield = criteriaBuilder.quot(calories, yield);
+                Expression<Double> caloriesPerYieldDouble = caloriesPerYield.as(Double.class);
+
+                for (Range range : ranges) {
+                    if (range.getMin() != null && range.getMax() != null) {
+                        predicates.add(criteriaBuilder.between(caloriesPerYieldDouble, range.getMin(), range.getMax()));
+                    } else if (range.getMin() != null) {
+                        predicates.add(criteriaBuilder.ge(caloriesPerYieldDouble, range.getMin()));
+                    } else if (range.getMax() != null) {
+                        predicates.add(criteriaBuilder.le(caloriesPerYieldDouble, range.getMax()));
+                    }
+                }
+            }
+
+        }
+    }
+
     private void addIngredientExclusionPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
         if (criteria.containsKey("ingredientLines")) {
             List<String> excludedIngredients = (List<String>) criteria.get("ingredientLines");
-            for (String ingredient : excludedIngredients) {
-                predicates.add(criteriaBuilder.isNotMember(ingredient, recipe.get("ingredientLines")));
+            for (String ingredientToBeExcluded : excludedIngredients) {
+                predicates.add(criteriaBuilder.isNotMember(ingredientToBeExcluded, recipe.get("ingredientLines")));
             }
         }
     }
@@ -119,6 +142,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         nutrientFieldMapping.put("nutrients[VITD]", "vitaminD");
         nutrientFieldMapping.put("nutrients[TOCPHA]", "vitaminE");
         nutrientFieldMapping.put("nutrients[VITK1]", "vitaminK");
+        nutrientFieldMapping.put("calories", "calories");
 
         return nutrientFieldMapping.get(nutrientKey);
     }
@@ -126,12 +150,27 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
     // TODO: add more mapping here
     private String mapDroolsLabelToDBField(String droolsLabel) {
         Map<String, String> labelMappings = new HashMap<>();
-        labelMappings.put("low-potassium", "Low Potassium");
+
         labelMappings.put("vegetarian", "Vegetarian");
+        labelMappings.put("vegan", "Vegan");
+        labelMappings.put("pecatarian", "Pescatarian");
+        labelMappings.put("kosher", "Kosher");
+
         labelMappings.put("soy-free", "Soy-Free");
+        labelMappings.put("wheat-free", "Wheat-Free");
+        labelMappings.put("dairy-free", "Dairy-Free");
+        labelMappings.put("pork-free", "Pork-Free");
+        labelMappings.put("egg-free", "Egg-Free");
+        labelMappings.put("fish-free", "Fish-Free");
+        labelMappings.put("shellfish-free", "Shellfish-Free");
+        labelMappings.put("red-meat-free", "Red-Meat-Free");
+        labelMappings.put("peanut-free", "Peanut-Free");
+        labelMappings.put("tree-nut-free", "Tree-Nut-Free");
+
         labelMappings.put("low-sodium", "Low-Sodium");
         labelMappings.put("low-carb", "Low-Carb");
-        labelMappings.put("pork-free", "Pork-Free");
+        labelMappings.put("low-sugar", "Low-Sugar");
+        labelMappings.put("low-potassium", "Low Potassium");
 
         return labelMappings.getOrDefault(droolsLabel, droolsLabel);
     }

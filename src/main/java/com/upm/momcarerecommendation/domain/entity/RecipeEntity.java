@@ -44,5 +44,6 @@ public class RecipeEntity {
     private NutrientsInfo totalNutrients;
 
     @ElementCollection
+    @Column(columnDefinition = "Text")
     private List<String> instructionLines;
 }

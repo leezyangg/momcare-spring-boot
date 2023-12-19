@@ -3,7 +3,6 @@ package com.upm.momcarerecommendation.service.impl;
 import com.upm.momcarerecommendation.domain.model.RecipeApiResponse;
 import com.upm.momcarerecommendation.service.FoodApiService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,19 +12,14 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
-@Service
-public class EdamamFoodApiServiceImpl implements FoodApiService {
-
-    private final WebClient webClient;
-
-    @Value("${edamam.api.base-url}")
+public class SpoonacularFoodApiServiceImpl implements FoodApiService {
+    private WebClient webClient;
+    @Value("${spoonacular.api.base-url}")
     private String baseUrl;
-    @Value("${edamam.api.app-id}")
-    private String appId;
-    @Value("${edamam.api.app-key}")
-    private String appKey;
+    @Value("${spoonacular.api.api-key}")
+    private String apiKey;
 
-    public EdamamFoodApiServiceImpl(WebClient.Builder webClientBuilder) {
+    public SpoonacularFoodApiServiceImpl(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
@@ -54,10 +48,9 @@ public class EdamamFoodApiServiceImpl implements FoodApiService {
     private MultiValueMap<String, String> getStringStringMultiValueMap() {
         MultiValueMap<String, String> foodQueryParam = new LinkedMultiValueMap<>();
 
-        // remember to insert the API_KEY & APP_ID from the Edamam API &
+        // remember to insert the API_KEY & APP_ID from the API &
         // put inside the application.yml or application.properties
-        foodQueryParam.add("app_id", appId);
-        foodQueryParam.add("app_key", appKey);
+        foodQueryParam.add("apiKey", apiKey);
 
         // by default both of these field are set as this
         foodQueryParam.add("type", "any");
@@ -72,7 +65,6 @@ public class EdamamFoodApiServiceImpl implements FoodApiService {
         foodQueryParam.add("field", "calories");
         foodQueryParam.add("field", "totalNutrients");
         foodQueryParam.add("field", "totalTime");
-        foodQueryParam.add("field", "totalWeight");
         foodQueryParam.add("field", "instructionLines");
         foodQueryParam.add("field", "yield");
         foodQueryParam.add("field", "dietLabels");

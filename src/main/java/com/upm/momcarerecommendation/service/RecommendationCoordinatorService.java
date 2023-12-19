@@ -6,4 +6,5 @@ import reactor.core.publisher.Mono;
 
 public interface RecommendationCoordinatorService {
     Mono<RecipeApiResponse> getFoodRecommendation(MotherRequest motherRequest);
+    Mono<RecipeApiResponse> getFoodRecommendationFromApi(MotherRequest motherRequest);
 }

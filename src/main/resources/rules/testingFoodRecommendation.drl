@@ -10,7 +10,7 @@ rule "Basic Nutrition Recommendation for Mother"
     when
         $mother : MotherRequest()
     then
-        insert(new FoodRecommend( "excluded", "garlic", $mother));
+/*        insert(new FoodRecommend( "excluded", "garlic", $mother));*/
         insert(new NutritionRecommend("nutrients[NA]", "1", $mother));
         insert(new NutritionRecommend("nutrients[PROCNT]", "5", $mother));
         insert(new FoodRecommend("diet", "low-sodium", $mother));

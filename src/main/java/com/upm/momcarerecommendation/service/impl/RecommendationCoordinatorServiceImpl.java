@@ -53,6 +53,16 @@ public class RecommendationCoordinatorServiceImpl implements RecommendationCoord
         }
     }
 
+    @Override
+    public Mono<RecipeApiResponse> getFoodRecommendationFromApi(MotherRequest motherRequest) {
+        Map<String,List<String>> foodRecommendParam = recommendationService.generateFoodRecommendation(motherRequest);
+
+        // printing for debug:
+        System.out.println("FoodRecommendParam: " + foodRecommendParam);
+
+        Mono<RecipeApiResponse> apiResponse = foodApiService.getFoodRecipe(foodRecommendParam);
+        return apiResponse.doOnNext(localRecipeService::processAndSaveRecipes);
+    }
 
 
     // transform the param to suit database dynamic query
@@ -75,7 +85,6 @@ public class RecommendationCoordinatorServiceImpl implements RecommendationCoord
                 dbQueryParams.put(dbKey, values);
 
             } else {
-                // the field that having range [min, max]
                 List<Range> ranges = new ArrayList<>();
                 for (String value : values) {
                     Range range = convertToRangeObject(value);

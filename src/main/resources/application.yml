@@ -4,7 +4,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/fooddb
+    url: jdbc:mysql://localhost:3306/fooddb?sessionVariables=sql_mode='NO_ENGINE_SUBSTITUTION'&jdbcCompliantTruncation=false
     username: root
     password: HelloWorld123
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -13,7 +13,7 @@ spring:
     max-in-memory-size: 2MB
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update        # change to "update" --> if you want to keep database for every web application restart
     show-sql: false             #      "create-drop" --> for recreating & drop every time for every restart (Debugging)
@@ -29,3 +29,8 @@ edamam:
     base-url: "https://api.edamam.com/api/recipes/v2"
     app-id: "f4c412e5"
     app-key: "9c7b4bc458dbd46fb4cf30d0155bac42"
+
+spoonacular:
+  api:
+    base-url: "https://api.spoonacular.com/recipes/complexSearch"
+    api-key: "9c2121c11b0640009a9b0d78e804b859"
