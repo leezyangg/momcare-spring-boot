@@ -1,9 +1,9 @@
 package com.upm.momcarerecommendation.service.impl;
 
+import com.upm.momcarerecommendation.domain.dto.RecipeApiResponse;
 import com.upm.momcarerecommendation.domain.entity.RecipeEntity;
-import com.upm.momcarerecommendation.domain.model.RecipeApiResponse;
 import com.upm.momcarerecommendation.mapper.Mapper;
-import com.upm.momcarerecommendation.repository.RecipeRepository;
+import com.upm.momcarerecommendation.domain.repository.RecipeRepository;
 import com.upm.momcarerecommendation.service.LocalRecipeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,20 +23,20 @@ public class LocalRecipeServiceImpl implements LocalRecipeService {
     }
 
     @Override
-    public void saveRecipes(List<RecipeEntity> recipes) {
-        recipeRepository.saveAll(recipes);
+    public void saveRecipes(List<RecipeEntity> recipeEntities) {
+        recipeRepository.saveAll(recipeEntities);
     }
 
     @Override
     @Transactional
     public void processAndSaveRecipes(RecipeApiResponse recipeApiResponse) {
-        List<RecipeEntity> recipes = recipeApiResponse.getHits()
+        List<RecipeEntity> recipeEntities = recipeApiResponse.getHits()
                 .stream()
                 .map(RecipeApiResponse.Hit::getRecipe)
                 .map(recipeMapper::mapToEntity)
                 .filter(recipe -> !recipeRepository.existsByLabel(recipe.getLabel()))
                 .collect(Collectors.toList());
-        saveRecipes(recipes);
+        saveRecipes(recipeEntities);
     }
 
     @Override

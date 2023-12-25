@@ -1,56 +1,57 @@
-package rules
+package rules;
 
 import com.upm.momcarerecommendation.domain.model.MotherRequest
-import com.upm.momcarerecommendation.domain.model.DetectedDisease
 
-// Detection of Blood Pressure
+// Blood Pressure Detection
 rule "Mild Blood Pressure"
 salience 1
     when
-        $mother : MotherRequest( bloodPressure.systolic >= 140, bloodPressure.diastolic >= 90 )
-        not DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother)
+        $mother : MotherRequest((bloodPressure.systolic >= 140 || bloodPressure.diastolic >= 90),
+                                 detectedDiseases not contains "Severe Blood Pressure",
+                                 detectedDiseases not contains "Moderate Blood Pressure",
+                                 detectedDiseases not contains "Mild Blood Pressure")
     then
-        insert(new DetectedDisease( "Blood Pressure" , "Mild", $mother));
+        $mother.getDetectedDiseases().add("Mild Blood Pressure");
+        update($mother);
 end
-
-
 rule "Moderate Blood Pressure"
 salience 5
     when
-        $mother : MotherRequest( bloodPressure.systolic >= 150, bloodPressure.diastolic >= 100)
-        not DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother)
+        $mother : MotherRequest((bloodPressure.systolic >= 150 || bloodPressure.diastolic >= 100),
+                                 detectedDiseases not contains "Severe Blood Pressure",
+                                 detectedDiseases not contains "Moderate Blood Pressure")
     then
-        insert(new DetectedDisease( "Blood Pressure" , "Moderate", $mother));
+        $mother.getDetectedDiseases().add("Moderate Blood Pressure");
+        update($mother);
 end
-
 rule "Severe Blood Pressure"
 salience 10
     when
-        $mother : MotherRequest( bloodPressure.systolic >= 160, bloodPressure.diastolic >= 110)
-        not DetectedDisease( diseaseName == "Blood Pressure" , mother == $mother)
+        $mother : MotherRequest(bloodPressure.systolic >= 160 || bloodPressure.diastolic >= 110)
     then
-        insert(new DetectedDisease( "Blood Pressure" , "Severe", $mother));
+        $mother.getDetectedDiseases().add("Severe Blood Pressure");
+        update($mother);
 end
+// Blood Pressure Detection
 
 
 
-// Detection of Blood Sugar Level (based on Fasting Blood Sugar Test) (mmol/L)
+// Diabetes Detection (based on Fasting Blood Sugar Test) (mmol/L)
 rule "Gestational Diabetes"
-salience 1
     when
         $mother : MotherRequest( isPregnant(), !historicalDisease.contains("Diabetes"), bloodSugar >= 5.1 )
-        not DetectedDisease( diseaseName == "Diabetes" , mother == $mother)
     then
-        insert(new DetectedDisease( "Diabetes", "Gestational", $mother));
+        $mother.getDetectedDiseases().add("Gestational Diabetes");
+        update($mother);
 end
-
 rule "Having Diabetes Before Pregnant or postpartum Diabetes"
     when
         $mother : MotherRequest ( bloodSugar >= 5.1 )
-        not DetectedDisease( diseaseName == "Diabetes", mother == $mother)
     then
-        insert(new DetectedDisease( "Diabetes", $mother));
+        $mother.getDetectedDiseases().add("Diabetes");
+        update($mother);
 end
+// Diabetes Detection (based on Fasting Blood Sugar Test) (mmol/L)
 
 
 
@@ -59,19 +60,47 @@ rule "Iron Deficiency Anaemia for Trimester 1"
     when
         $mother : MotherRequest( isPregnant(), trimester == 1, haemoglobinLevel <= 11 )
     then
-        insert(new DetectedDisease( "Anaemia", $mother));
+        $mother.getDetectedDiseases().add("Anaemia");
+        update($mother);
 end
-
 rule "Iron Deficiency Anaemia for Trimester 2"
     when
         $mother : MotherRequest( isPregnant(), trimester == 2, haemoglobinLevel <= 10.5 )
     then
-        insert(new DetectedDisease( "Anaemia", $mother));
+        $mother.getDetectedDiseases().add("Anaemia");
+        update($mother);
 end
-
 rule "Iron Deficiency Anaemia for Trimester 3"
     when
         $mother : MotherRequest( isPregnant(), trimester == 3, haemoglobinLevel <= 10 )
     then
-        insert(new DetectedDisease( "Anaemia", $mother));
+        $mother.getDetectedDiseases().add("Anaemia");
+        update($mother);
 end
+// Detection of Anaemia (g/dL)
+
+
+
+// Historical Disease
+rule "Historical Hypothyroid"
+    when
+        $mother : MotherRequest( !historicalDisease.contains("Hypothyroid") )
+    then
+        $mother.getDetectedDiseases().add("Hypothyroid");
+        update($mother);
+end
+rule "Historical Hyperthyroid"
+    when
+        $mother : MotherRequest( !historicalDisease.contains("Hyperthyroid") )
+    then
+        $mother.getDetectedDiseases().add("Hyperthyroid");
+        update($mother);
+end
+rule "Historical Thalassemia"
+    when
+        $mother : MotherRequest( !historicalDisease.contains("Thalassemia") )
+    then
+        $mother.getDetectedDiseases().add("Thalassemia");
+        update($mother);
+end
+// Historical Disease

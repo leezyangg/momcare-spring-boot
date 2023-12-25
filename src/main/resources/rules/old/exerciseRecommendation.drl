@@ -1,0 +1,28 @@
+package rules;
+
+import com.upm.momcarerecommendation.domain.model.MotherRequest
+import com.upm.momcarerecommendation.domain.model.ExerciseRecommend
+
+// Exercise Recommendation based on Health Condition
+rule "Pregnant Women Exercise"
+    when
+        $mother : MotherRequest( isPregnant() )
+    then
+        insert(new ExerciseRecommend("Riding Stationary Bike", "Should", $mother));
+        insert(new ExerciseRecommend("Modified Yoga", "Should", $mother));
+        insert(new ExerciseRecommend("Supine Position Activity", "Avoid", $mother));
+        insert(new ExerciseRecommend("High Falling Risk Activity", "Avoid", $mother));
+        insert(new ExerciseRecommend("Hiking", "Avoid", $mother));
+        insert(new ExerciseRecommend("Scuba Diving", "Avoid", $mother));
+end
+
+rule "For All Mother Exercise"
+    when
+        $mother : MotherRequest()
+    then
+        insert(new ExerciseRecommend("Muscle-strengthening activities", "Should", $mother));
+        insert(new ExerciseRecommend("Stomach Strengthening Exercise", "Should", $mother));
+        insert(new ExerciseRecommend("Pelvic Floor Exercise", "Should", $mother));
+        insert(new ExerciseRecommend("Swimming", "Should", $mother));
+        insert(new ExerciseRecommend("Brisk Walking", "Should", $mother));
+end

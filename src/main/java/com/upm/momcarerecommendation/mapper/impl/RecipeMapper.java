@@ -1,8 +1,8 @@
 package com.upm.momcarerecommendation.mapper.impl;
 
 import com.upm.momcarerecommendation.domain.entity.NutrientsInfo;
+import com.upm.momcarerecommendation.domain.dto.RecipeApiResponse;
 import com.upm.momcarerecommendation.domain.entity.RecipeEntity;
-import com.upm.momcarerecommendation.domain.model.RecipeApiResponse;
 import com.upm.momcarerecommendation.mapper.Mapper;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +30,7 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
                 .build();
     }
     @Override
-    public RecipeApiResponse.Recipe mapToModel(RecipeEntity recipeEntity) {
+    public RecipeApiResponse.Recipe mapToDto(RecipeEntity recipeEntity) {
         RecipeApiResponse.Recipe.RecipeBuilder builder = RecipeApiResponse.Recipe.builder()
                 .label(recipeEntity.getLabel())
                 .image(recipeEntity.getImage())
@@ -81,7 +81,7 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
         return nutrient != null ? nutrient.getQuantity() : null;
     }
 
-    // helper methods for mapToModel method
+    // helper methods for mapToDto method
     private Map<String, RecipeApiResponse.Nutrient> mapNutrientsInfoToApiResponse(NutrientsInfo nutrientsInfo) {
         Map<String, RecipeApiResponse.Nutrient> nutrientsMap = new HashMap<>();
         if (nutrientsInfo != null) {
