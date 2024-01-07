@@ -1,5 +1,7 @@
 package com.upm.momcarerecommendation.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.upm.momcarerecommendation.domain.entity.RecipeEntity;
 import com.upm.momcarerecommendation.domain.model.MotherRequest;
 import com.upm.momcarerecommendation.domain.model.Range;
@@ -19,6 +21,7 @@ import java.util.Map;
 
 @Service
 public class RecipeRecommendationServiceImpl implements RecipeRecommendationService {
+    private static final Logger logger = LoggerFactory.getLogger(RecipeRecommendationServiceImpl.class);
     private final RuleService ruleService;
     private final RecipeApiService recipeApiService;
     private final LocalRecipeService localRecipeService;
@@ -39,12 +42,12 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
         List<RecipeEntity> localRecipeEntities = localRecipeService.findRecipesByCriteria(dbQueryParams);
 
         if (localRecipeEntities.size() == 10) {
-            System.out.println("DbQueryParams: "+ dbQueryParams);
+            logger.info("DbQueryParams: "+ dbQueryParams);
             RecipeApiResponse localResponse = convertToRecipeApiResponse(localRecipeEntities);
             return Mono.just(localResponse);
 
         } else {
-            System.out.println("FoodRecommendParam: " + apiQueryParams);
+            logger.info("FoodRecommendParam: "+ apiQueryParams);
             Mono<RecipeApiResponse> apiResponse = recipeApiService.getRecipes(apiQueryParams);
             return apiResponse.doOnNext(localRecipeService::processAndSaveRecipes);
         }
@@ -53,7 +56,7 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
     @Override
     public Mono<RecipeApiResponse> getRecipeRecommendationsFromApi(MotherRequest motherRequest) {
         Map<String,List<String>> foodRecommendParam = ruleService.getRecipeParams(motherRequest);
-        System.out.println("FoodRecommendParam: " + foodRecommendParam);
+        logger.info("FoodRecommendParam: "+ foodRecommendParam);
         Mono<RecipeApiResponse> apiResponse = recipeApiService.getRecipes(foodRecommendParam);
         return apiResponse.doOnNext(localRecipeService::processAndSaveRecipes);
     }
@@ -61,19 +64,19 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
 
 
 
-    // helper method to transform query to suit db query
+    private static final Map<String, String> KEY_MAPPING = Map.of(
+            "health", "healthLabels",
+            "diet", "dietLabels",
+            "excluded", "ingredientLines"
+    );
+
     private Map<String, Object> transformForDatabaseQuery(Map<String, List<String>> recommendationMap) {
         Map<String, Object> dbQueryParams = new HashMap<>();
-        Map<String, String> keyMapping = Map.of(
-                "health", "healthLabels",
-                "diet", "dietLabels",
-                "excluded", "ingredientLines"
-                // TODO: Add more mappings as needed
-        );
+
         for (Map.Entry<String, List<String>> entry : recommendationMap.entrySet()) {
             String droolsKey = entry.getKey();
             List<String> values = entry.getValue();
-            String dbKey = keyMapping.getOrDefault(droolsKey, droolsKey);
+            String dbKey = KEY_MAPPING.getOrDefault(droolsKey, droolsKey);
 
             if (dbKey.equals("healthLabels") || dbKey.equals("dietLabels") || dbKey.equals("ingredientLines")) {
                 dbQueryParams.put(dbKey, values);
@@ -89,10 +92,8 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
                 dbQueryParams.put(dbKey, ranges);
             }
         }
-
         return dbQueryParams;
     }
-
 
     private Range convertToRangeObject(String value) {
         if (value.contains("-")) {
@@ -103,7 +104,7 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
                 double max = Double.parseDouble(rangeParts[1]);
                 return new Range(min, max);
             } catch (NumberFormatException e) {
-                System.err.println("Error parsing range value: " + value);
+                logger.error("Error parsing range value: " + value);
                 return null;
             }
 
@@ -113,7 +114,7 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
                 double min = Double.parseDouble(value.replace("+", ""));
                 return new Range(min, null);
             } catch (NumberFormatException e) {
-                System.err.println("Error parsing minimum value: " + value);
+                logger.error("Error parsing minimum value: " + value);
                 return null;
             }
 
@@ -123,12 +124,11 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
                 double max = Double.parseDouble(value);
                 return new Range(null, max);
             } catch (NumberFormatException e) {
-                System.err.println("Error parsing maximum limit value: " + value);
+                logger.error("Error parsing maximum limit value: " + value);
                 return null;
             }
         }
     }
-
 
     private RecipeApiResponse convertToRecipeApiResponse(List<RecipeEntity> localRecipeEntities) {
         List<RecipeApiResponse.Hit> hits = new ArrayList<>();

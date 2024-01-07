@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class NutritionRecommend {
     private String nutrition;
     private String quantity;
-    private MotherRequest mother;
 }

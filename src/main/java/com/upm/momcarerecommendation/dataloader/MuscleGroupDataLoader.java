@@ -31,7 +31,6 @@ public class MuscleGroupDataLoader implements CommandLineRunner {
         addMuscleGroupIfNotFound("Calves");
         addMuscleGroupIfNotFound("Forearms");
         addMuscleGroupIfNotFound("Full body");
-        // TODO: add more muscle groups...
     }
 
     private void addMuscleGroupIfNotFound(String name) {

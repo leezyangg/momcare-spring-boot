@@ -1,10 +1,7 @@
 package com.upm.momcarerecommendation.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -13,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
 @Table(name = "recipe")
 public class RecipeEntity {
 
@@ -27,15 +25,19 @@ public class RecipeEntity {
     private Double yield;
 
     @ElementCollection
+    @CollectionTable(name = "recipe_diet_labels", joinColumns = @JoinColumn(name = "recipe_id"))
     private List<String> dietLabels;
 
     @ElementCollection
+    @CollectionTable(name = "recipe_health_labels", joinColumns = @JoinColumn(name = "recipe_id"))
     private List<String> healthLabels;
 
     @ElementCollection
+    @CollectionTable(name = "recipe_cautions", joinColumns = @JoinColumn(name = "recipe_id"))
     private List<String> cautions;
 
     @ElementCollection
+    @CollectionTable(name = "recipe_ingredient_lines", joinColumns = @JoinColumn(name = "recipe_id"))
     private List<String> ingredientLines;
 
     private Double calories;
@@ -46,5 +48,6 @@ public class RecipeEntity {
 
     @ElementCollection
     @Column(columnDefinition = "Text")
+    @CollectionTable(name = "recipe_instruction_lines", joinColumns = @JoinColumn(name = "recipe_id"))
     private List<String> instructionLines;
 }

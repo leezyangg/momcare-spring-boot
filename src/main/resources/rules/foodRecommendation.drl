@@ -119,17 +119,20 @@ rule "High Blood Pressure Diet"
                                  detectedDiseases.contains("Moderate Blood Pressure") ||
                                  detectedDiseases.contains("Severe Blood Pressure"))
         $sodiumThreshold: Threshold( nutrition == "Sodium" )
+        not FoodRecommend( value == "DASH")
+        not FoodRecommend( value == "low-sodium")
     then
         $sodiumThreshold.setMaximumAmount(Double.valueOf(1500));
-        insert(new FoodRecommend("health", "DASH", $mother));
-        insert(new FoodRecommend("diet", "low-sodium", $mother));
+        insert(new FoodRecommend("health", "DASH"));
+        insert(new FoodRecommend("diet", "low-sodium"));
 end
 rule "Diabetes Diet"
     when
         $mother : MotherRequest( detectedDiseases.contains("Diabetes") ||
                                  detectedDiseases.contains("Gestational Diabetes") )
+        not FoodRecommend( value == "low-sugar")
     then
-        insert(new FoodRecommend("health", "low-sugar", $mother));
+        insert(new FoodRecommend("health", "low-sugar"));
 end
 rule "Iron Deficiency Anaemia Diet"
     when
@@ -159,8 +162,8 @@ rule "Thalassemia Diet"
     when
         $mother : MotherRequest( detectedDiseases.contains("Thalassemia") )
     then
-        insert(new FoodRecommend("health", "shellfish-free", $mother));
-        insert(new FoodRecommend("health", "red-meat-free", $mother));
+        insert(new FoodRecommend("health", "shellfish-free"));
+        insert(new FoodRecommend("health", "red-meat-free"));
 end
 // Threshold for spesific health condition
 
@@ -170,37 +173,37 @@ rule "Malay Diet"
     when
         $mother : MotherRequest( ethnicity == "Malay" )
     then
-        insert(new FoodRecommend("health", "pork-free", $mother));
+        insert(new FoodRecommend("health", "pork-free"));
 end
 rule "Indian Diet"
     when
         $mother : MotherRequest( ethnicity == "Indian" )
     then
-        insert(new FoodRecommend("excluded", "beef", $mother));
+        insert(new FoodRecommend("excluded", "beef"));
 end
 rule "Vegetarian"
     when
         $mother : MotherRequest( dietReligious == "Vegetarian" )
     then
-        insert(new FoodRecommend("health", "vegetarian", $mother));
+        insert(new FoodRecommend("health", "vegetarian"));
 end
 rule "Vegan"
     when
         $mother : MotherRequest( dietReligious == "Vegan" )
     then
-        insert(new FoodRecommend("health", "vegan", $mother));
+        insert(new FoodRecommend("health", "vegan"));
 end
 rule "Pecatarian"
     when
         $mother : MotherRequest( dietReligious == "Pecatarian" )
     then
-        insert(new FoodRecommend("health", "pecatarian", $mother));
+        insert(new FoodRecommend("health", "pecatarian"));
 end
 rule "Kosher"
     when
         $mother : MotherRequest( dietReligious == "Kosher" )
     then
-        insert(new FoodRecommend("health", "kosher", $mother));
+        insert(new FoodRecommend("health", "kosher"));
 end
 // Avoid Food Based on Religious
 
@@ -210,49 +213,49 @@ rule "Avoid Peanut"
     when
         $mother : MotherRequest( allergyFood.contains("Peanuts") )
     then
-        insert(new FoodRecommend( "health", "peanut-free", $mother));
+        insert(new FoodRecommend( "health", "peanut-free"));
 end
 rule "Avoid Tree Nuts"
     when
         $mother : MotherRequest( allergyFood.contains("Tree Nuts") )
     then
-        insert(new FoodRecommend( "health", "tree-nut-free", $mother));
+        insert(new FoodRecommend( "health", "tree-nut-free"));
 end
 rule "Avoid Milk"
     when
         $mother : MotherRequest( allergyFood.contains("Milk") )
     then
-        insert(new FoodRecommend( "health", "dairy-free", $mother));
+        insert(new FoodRecommend( "health", "dairy-free"));
 end
 rule "Avoid Egg"
     when
         $mother : MotherRequest( allergyFood.contains("Eggs") )
     then
-        insert(new FoodRecommend( "health", "egg-free", $mother));
+        insert(new FoodRecommend( "health", "egg-free"));
 end
 rule "Avoid Fish"
     when
         $mother : MotherRequest( allergyFood.contains("Fish") )
     then
-        insert(new FoodRecommend( "health", "fish-free", $mother));
+        insert(new FoodRecommend( "health", "fish-free"));
 end
 rule "Avoid Shellfish"
     when
         $mother : MotherRequest( allergyFood.contains("Shellfish") )
     then
-        insert(new FoodRecommend( "health", "shellfish-free", $mother));
+        insert(new FoodRecommend( "health", "shellfish-free"));
 end
 rule "Avoid Soy"
     when
         $mother : MotherRequest( allergyFood.contains("Soy") )
     then
-        insert(new FoodRecommend( "health", "soy-free", $mother));
+        insert(new FoodRecommend( "health", "soy-free"));
 end
 rule "Avoid Wheat"
     when
         $mother : MotherRequest( allergyFood.contains("Wheat") )
     then
-        insert(new FoodRecommend( "health", "wheat-free", $mother));
+        insert(new FoodRecommend( "health", "wheat-free"));
 end
 // Avoid Food Based on Allergy
 
@@ -264,7 +267,7 @@ when
     $threshold : Threshold( nutrition == "Calorie", $maxAmount : maximumAmount, $requiredAmount : requiredAmount )
     eval( $totalIntake != null && $totalIntake.getTotalCalories() < $requiredAmount )
 then
-    insert(new NutritionRecommend("calories", String.valueOf($requiredAmount/3)+"-"+String.valueOf($maxAmount), $mother));
+    insert(new NutritionRecommend("calories", String.valueOf($requiredAmount/3)+"-"+String.valueOf($maxAmount)));
 end
 rule "Calories Param after reaching required"
 when
@@ -273,7 +276,7 @@ when
     eval( $totalIntake != null && $totalIntake.getTotalCalories() < $maxAmount && $totalIntake.getTotalCalories() > $requiredAmount)
 then
     double remainingRequired = $maxAmount - $totalIntake.getTotalCalories();
-    insert(new NutritionRecommend("calories", String.valueOf(remainingRequired), $mother));
+    insert(new NutritionRecommend("calories", String.valueOf(remainingRequired)));
 end
 rule "Calories Param after exceed maximum"
 when
@@ -281,7 +284,7 @@ when
     $threshold : Threshold( nutrition == "Calorie", $maxAmount : maximumAmount)
     eval( $totalIntake != null && $totalIntake.getTotalCalories() > $maxAmount )
 then
-    insert(new NutritionRecommend("calories", "100", $mother));
+    insert(new NutritionRecommend("calories", "100"));
 end
 
 rule "Base Protein Param"
@@ -290,7 +293,7 @@ when
     $threshold : Threshold( nutrition == "Protein", $maxAmount : maximumAmount, $minAmount : requiredAmount)
     eval( $totalIntake != null && $totalIntake.getTotalProteins() < $minAmount )
 then
-    insert(new NutritionRecommend("nutrients[PROCNT]", String.valueOf($minAmount/3)+"-"+String.valueOf($maxAmount), $mother));
+    insert(new NutritionRecommend("nutrients[PROCNT]", String.valueOf($minAmount/3)+"-"+String.valueOf($maxAmount)));
 end
 
 
@@ -302,5 +305,5 @@ when
                             $totalIntake.getTotalFolicAcid() < $maxAmount )
 then
     double remainingRequired = $maxAmount - $totalIntake.getTotalFolicAcid();
-    insert(new NutritionRecommend("nutrients[FOLAC]", String.valueOf(remainingRequired), $mother));
+    insert(new NutritionRecommend("nutrients[FOLAC]", String.valueOf(remainingRequired)));
 end*/

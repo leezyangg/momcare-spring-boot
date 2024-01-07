@@ -7,21 +7,25 @@ import com.upm.momcarerecommendation.domain.model.NutritionRecommend;
 import com.upm.momcarerecommendation.service.RuleService;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
 public class RuleServiceImpl implements RuleService {
-    private final KieContainer kieContainer;
-    public RuleServiceImpl(KieContainer kieContainer) {
-        this.kieContainer = kieContainer;
+    private final KieContainer dietKieContainer;
+    private final KieContainer exerciseKieContainer;
+
+    public RuleServiceImpl(@Qualifier("dietKieContainer")KieContainer dietKieContainer, @Qualifier("exerciseKieContainer")KieContainer exerciseKieContainer) {
+        this.dietKieContainer = dietKieContainer;
+        this.exerciseKieContainer = exerciseKieContainer;
     }
 
     @Override
     public Map<String, List<String>> getRecipeParams(MotherRequest motherRequest) {
 
-        KieSession kieSession = kieContainer.newKieSession();
+        KieSession kieSession = dietKieContainer.newKieSession();
         kieSession.insert(motherRequest);
         kieSession.fireAllRules();
         kieSession.dispose();
@@ -35,7 +39,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public Map<String, List<String>> getExerciseParams(MotherRequest motherRequest) {
 
-        KieSession kieSession = kieContainer.newKieSession();
+        KieSession kieSession = exerciseKieContainer.newKieSession();
         kieSession.insert(motherRequest);
         kieSession.fireAllRules();
         kieSession.dispose();

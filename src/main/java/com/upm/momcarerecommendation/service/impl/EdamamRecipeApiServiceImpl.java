@@ -73,7 +73,7 @@ public class EdamamRecipeApiServiceImpl implements RecipeApiService {
         foodQueryParam.add("field", "totalNutrients");
         foodQueryParam.add("field", "totalTime");
         foodQueryParam.add("field", "totalWeight");
-        foodQueryParam.add("field", "instructionLines");
+        foodQueryParam.add("field", "cautions");
         foodQueryParam.add("field", "yield");
         foodQueryParam.add("field", "dietLabels");
         foodQueryParam.add("field", "healthLabels");

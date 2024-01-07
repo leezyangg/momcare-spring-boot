@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class FoodRecommend {
     private String parameter;
     private String value;
-    private MotherRequest mother;
 }

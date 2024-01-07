@@ -36,6 +36,7 @@ public class RecipeApiResponse {
         private List<String> dietLabels;
         private List<String> healthLabels;
         private List<String> ingredientLines;
+        private List<String> cautions;
         private List<String> instructionLines;
         private double calories;
         private double totalTime;

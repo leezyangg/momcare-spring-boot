@@ -1,5 +1,7 @@
 package com.upm.momcarerecommendation.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.upm.momcarerecommendation.domain.dto.ExerciseDto;
 import com.upm.momcarerecommendation.domain.entity.Exercise;
 import com.upm.momcarerecommendation.domain.model.MotherRequest;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 @Service
 public class ExerciseRecommendationServiceImpl implements ExerciseRecommendationService {
+    private static final Logger logger = LoggerFactory.getLogger(ExerciseRecommendationServiceImpl.class);
     private final RuleService ruleService;
     private final ExerciseService exerciseService;
     private final Mapper<ExerciseDto, Exercise> exerciseMapper;
@@ -26,7 +29,7 @@ public class ExerciseRecommendationServiceImpl implements ExerciseRecommendation
     @Override
     public List<ExerciseDto> getExerciseRecommendations(MotherRequest motherRequest) {
         Map<String, List<String>> exerciseQueryParam = ruleService.getExerciseParams(motherRequest);
-        System.out.println(exerciseQueryParam);
+        logger.info("ExerciseDBQueryParams: "+ exerciseQueryParam);
         return exerciseService
                 .findExerciseByCriteria(exerciseQueryParam)
                 .stream()

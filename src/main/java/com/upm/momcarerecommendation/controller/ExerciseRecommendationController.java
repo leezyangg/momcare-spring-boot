@@ -14,7 +14,6 @@ import java.util.List;
 @RequestMapping("/api/exercise-recommendations")
 public class ExerciseRecommendationController {
     private final ExerciseRecommendationService exerciseRecommendationService;
-
     public ExerciseRecommendationController(ExerciseRecommendationService exerciseRecommendationService) {
         this.exerciseRecommendationService = exerciseRecommendationService;
     }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEntity> {
@@ -20,10 +21,11 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
                 .source(recipe.getSource())
                 .url(recipe.getUrl())
                 .yield(recipe.getYield())
-                .dietLabels(new ArrayList<>(recipe.getDietLabels()))
-                .healthLabels(new ArrayList<>(recipe.getHealthLabels()))
-                .ingredientLines(new ArrayList<>(recipe.getIngredientLines()))
-                .instructionLines(new ArrayList<>(recipe.getInstructionLines()))
+                .dietLabels(recipe.getDietLabels() != null ? new ArrayList<>(recipe.getDietLabels()) : new ArrayList<>())
+                .healthLabels(recipe.getHealthLabels() != null ? new ArrayList<>(recipe.getHealthLabels()) : new ArrayList<>())
+                .ingredientLines(recipe.getIngredientLines() != null ? new ArrayList<>(recipe.getIngredientLines()) : new ArrayList<>())
+                .cautions(recipe.getCautions() != null ? new ArrayList<>(recipe.getCautions()) : new ArrayList<>())
+                .instructionLines(recipe.getInstructionLines() != null ? new ArrayList<>(recipe.getInstructionLines()) : new ArrayList<>())
                 .calories(recipe.getCalories())
                 .totalTime(recipe.getTotalTime())
                 .totalNutrients(mapNutrientsInfo(recipe.getTotalNutrients()))
@@ -40,6 +42,7 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
                 .dietLabels(new ArrayList<>(recipeEntity.getDietLabels()))
                 .healthLabels(new ArrayList<>(recipeEntity.getHealthLabels()))
                 .ingredientLines(new ArrayList<>(recipeEntity.getIngredientLines()))
+                .cautions(new ArrayList<>(recipeEntity.getCautions()))
                 .instructionLines(new ArrayList<>(recipeEntity.getInstructionLines()))
                 .calories(recipeEntity.getCalories())
                 .totalTime(recipeEntity.getTotalTime())
@@ -50,72 +53,154 @@ public class RecipeMapper implements Mapper<RecipeApiResponse.Recipe, RecipeEnti
 
 
 
+    private static final Map<String, String> NUTRIENT_NAMES = Map.ofEntries(
+            Map.entry("FAT", "Fat"),
+            Map.entry("CHOCDF", "Carbs"),
+            Map.entry("FIBTG", "Fiber"),
+            Map.entry("PROCNT", "Protein"),
+            Map.entry("NA", "Sodium"),
+            Map.entry("CA", "Calcium"),
+            Map.entry("MG", "Magnesium"),
+            Map.entry("FE", "Iron"),
+            Map.entry("ZN", "Zinc"),
+            Map.entry("P", "Phosphorus"),
+            Map.entry("VITA_RAE", "Vitamin A"),
+            Map.entry("VITC", "Vitamin C"),
+            Map.entry("VITB6A", "Vitamin B6"),
+            Map.entry("FOLAC", "Folic Acid"),
+            Map.entry("VITB12", "Vitamin B12"),
+            Map.entry("VITD", "Vitamin D"),
+            Map.entry("TOCPHA", "Vitamin E"),
+            Map.entry("VITK1", "Vitamin K")
+    );
+
+    private static final Map<String, String> NUTRIENT_UNITS = Map.ofEntries(
+            Map.entry("FAT", "g"),
+            Map.entry("CHOCDF", "g"),
+            Map.entry("FIBTG", "g"),
+            Map.entry("PROCNT", "g"),
+            Map.entry("NA", "mg"),
+            Map.entry("CA", "mg"),
+            Map.entry("MG", "mg"),
+            Map.entry("FE", "mg"),
+            Map.entry("ZN", "mg"),
+            Map.entry("P", "mg"),
+            Map.entry("VITA_RAE", "µg"),
+            Map.entry("VITC", "mg"),
+            Map.entry("VITB6A", "mg"),
+            Map.entry("FOLAC", "µg"),
+            Map.entry("VITB12", "µg"),
+            Map.entry("VITD", "µg"),
+            Map.entry("TOCPHA", "mg"),
+            Map.entry("VITK1", "µg")
+    );
+
+    private static final Map<String, Function<NutrientsInfo, Double>> NUTRIENT_VALUE_ACCESSORS = Map.ofEntries(
+            Map.entry("FAT", NutrientsInfo::getFat),
+            Map.entry("CHOCDF", NutrientsInfo::getCarbs),
+            Map.entry("FIBTG", NutrientsInfo::getFiber),
+            Map.entry("PROCNT", NutrientsInfo::getProtein),
+            Map.entry("NA", NutrientsInfo::getSodium),
+            Map.entry("CA", NutrientsInfo::getCalcium),
+            Map.entry("MG", NutrientsInfo::getMagnesium),
+            Map.entry("FE", NutrientsInfo::getIron),
+            Map.entry("ZN", NutrientsInfo::getZinc),
+            Map.entry("P", NutrientsInfo::getPhosphorus),
+            Map.entry("VITA_RAE", NutrientsInfo::getVitaminA),
+            Map.entry("VITC", NutrientsInfo::getVitaminC),
+            Map.entry("VITB6A", NutrientsInfo::getVitaminB6),
+            Map.entry("FOLAC", NutrientsInfo::getFolicAcid),
+            Map.entry("VITB12", NutrientsInfo::getVitaminB12),
+            Map.entry("VITD", NutrientsInfo::getVitaminD),
+            Map.entry("TOCPHA", NutrientsInfo::getVitaminE),
+            Map.entry("VITK1", NutrientsInfo::getVitaminK)
+    );
+
     // helper methods for mapToEntity method
     private NutrientsInfo mapNutrientsInfo(Map<String, RecipeApiResponse.Nutrient> nutrientsMap) {
         NutrientsInfo.NutrientsInfoBuilder builder = NutrientsInfo.builder();
-
         if (nutrientsMap != null) {
-            builder
-                    .fat(getNutrientQuantity(nutrientsMap, "FAT"))
-                    .carbs(getNutrientQuantity(nutrientsMap, "CHOCDF"))
-                    .fiber(getNutrientQuantity(nutrientsMap, "FIBTG"))
-                    .protein(getNutrientQuantity(nutrientsMap, "PROCNT"))
-                    .sodium(getNutrientQuantity(nutrientsMap, "NA"))
-                    .calcium(getNutrientQuantity(nutrientsMap, "CA"))
-                    .magnesium(getNutrientQuantity(nutrientsMap, "MG"))
-                    .iron(getNutrientQuantity(nutrientsMap, "FE"))
-                    .zinc(getNutrientQuantity(nutrientsMap, "ZN"))
-                    .vitaminA(getNutrientQuantity(nutrientsMap, "VITA_RAE"))
-                    .vitaminC(getNutrientQuantity(nutrientsMap, "VITC"))
-                    .vitaminB6(getNutrientQuantity(nutrientsMap, "VITB6A"))
-                    .folicAcid(getNutrientQuantity(nutrientsMap, "FOL"))
-                    .vitaminB12(getNutrientQuantity(nutrientsMap, "VITB12"))
-                    .vitaminD(getNutrientQuantity(nutrientsMap, "VITD"))
-                    .vitaminE(getNutrientQuantity(nutrientsMap, "TOCPHA"));
+            for (Map.Entry<String, String> entry : NUTRIENT_NAMES.entrySet()) {
+                String key = entry.getKey();
+                RecipeApiResponse.Nutrient nutrient = nutrientsMap.get(key);
+                if (nutrient != null) {
+                    double quantity = nutrient.getQuantity();
+                    switch (key) {
+                        case "FAT":
+                            builder.fat(quantity);
+                            break;
+                        case "CHOCDF":
+                            builder.carbs(quantity);
+                            break;
+                        case "FIBTG":
+                            builder.fiber(quantity);
+                            break;
+                        case "PROCNT":
+                            builder.protein(quantity);
+                            break;
+                        case "NA":
+                            builder.sodium(quantity);
+                            break;
+                        case "CA":
+                            builder.calcium(quantity);
+                            break;
+                        case "MG":
+                            builder.magnesium(quantity);
+                            break;
+                        case "FE":
+                            builder.iron(quantity);
+                            break;
+                        case "ZN":
+                            builder.zinc(quantity);
+                            break;
+                        case "P":
+                            builder.phosphorus(quantity);
+                            break;
+                        case "VITA_RAE":
+                            builder.vitaminA(quantity);
+                            break;
+                        case "VITC":
+                            builder.vitaminC(quantity);
+                            break;
+                        case "VITB6A":
+                            builder.vitaminB6(quantity);
+                            break;
+                        case "FOLAC":
+                            builder.folicAcid(quantity);
+                            break;
+                        case "VITB12":
+                            builder.vitaminB12(quantity);
+                            break;
+                        case "VITD":
+                            builder.vitaminD(quantity);
+                            break;
+                        case "TOCPHA":
+                            builder.vitaminE(quantity);
+                            break;
+                        case "VITK1":
+                            builder.vitaminK(quantity);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
-
         return builder.build();
-    }
-    private Double getNutrientQuantity(Map<String, RecipeApiResponse.Nutrient> nutrientsMap, String nutrientKey) {
-        RecipeApiResponse.Nutrient nutrient = nutrientsMap.get(nutrientKey);
-        return nutrient != null ? nutrient.getQuantity() : null;
     }
 
     // helper methods for mapToDto method
     private Map<String, RecipeApiResponse.Nutrient> mapNutrientsInfoToApiResponse(NutrientsInfo nutrientsInfo) {
         Map<String, RecipeApiResponse.Nutrient> nutrientsMap = new HashMap<>();
         if (nutrientsInfo != null) {
-            nutrientsMap.put("FAT",        new RecipeApiResponse.Nutrient("Fat", nutrientsInfo.getFat(), "g"));
-            nutrientsMap.put("FASAT",      new RecipeApiResponse.Nutrient("Saturated", nutrientsInfo.getFat(), "g"));
-            nutrientsMap.put("FATRN",      new RecipeApiResponse.Nutrient("Trans", nutrientsInfo.getFat(), "g"));
-            nutrientsMap.put("FAMS",       new RecipeApiResponse.Nutrient("Monounsaturated", nutrientsInfo.getFat(), "g"));
-            nutrientsMap.put("FAPU",       new RecipeApiResponse.Nutrient("Polyunsaturated", nutrientsInfo.getFat(), "g"));
-            nutrientsMap.put("CHOCDF",     new RecipeApiResponse.Nutrient("Carbs", nutrientsInfo.getCarbs(), "g"));
-            nutrientsMap.put("CHOCDF.net", new RecipeApiResponse.Nutrient("Carbohydrates (net)", nutrientsInfo.getCarbs(), "g"));
-            nutrientsMap.put("FIBTG",      new RecipeApiResponse.Nutrient("Fiber", nutrientsInfo.getCarbs(), "g"));
-            nutrientsMap.put("SUGAR",      new RecipeApiResponse.Nutrient("Sugars", nutrientsInfo.getCarbs(), "g"));
-            nutrientsMap.put("PROCNT",     new RecipeApiResponse.Nutrient("Protein", nutrientsInfo.getProtein(), "g"));
-            nutrientsMap.put("CHOLE",      new RecipeApiResponse.Nutrient("Cholesterol", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("NA",         new RecipeApiResponse.Nutrient("Sodium", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("CA",         new RecipeApiResponse.Nutrient("Calcium", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("MG",         new RecipeApiResponse.Nutrient("Magnesium", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("K",          new RecipeApiResponse.Nutrient("Potassium", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("FE",         new RecipeApiResponse.Nutrient("Iron", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("ZN",         new RecipeApiResponse.Nutrient("Zinc", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("P",          new RecipeApiResponse.Nutrient("Phosphorus", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("VITA_RAE",   new RecipeApiResponse.Nutrient("Vitamin A", nutrientsInfo.getProtein(), "µg"));
-            nutrientsMap.put("VITC",       new RecipeApiResponse.Nutrient("Vitamin C", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("THIA",       new RecipeApiResponse.Nutrient("Thiamin (B1)", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("RIBF",       new RecipeApiResponse.Nutrient("Riboflavin (B2)", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("NIA",        new RecipeApiResponse.Nutrient("Niacin (B3)", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("VITB6A",     new RecipeApiResponse.Nutrient("Vitamin B6", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("FOLDFE",     new RecipeApiResponse.Nutrient("Folate equivalent (total)", nutrientsInfo.getProtein(), "µg"));
-            nutrientsMap.put("FOLFD",      new RecipeApiResponse.Nutrient("Folate (food)", nutrientsInfo.getProtein(), "µg"));
-            nutrientsMap.put("FOLAC",      new RecipeApiResponse.Nutrient("Folic acid", nutrientsInfo.getProtein(), "µg"));
-            nutrientsMap.put("VITB12",     new RecipeApiResponse.Nutrient("Vitamin B12", nutrientsInfo.getProtein(), "µg"));
-            nutrientsMap.put("VITD",       new RecipeApiResponse.Nutrient("Vitamin D", nutrientsInfo.getProtein(), "µg"));
-            nutrientsMap.put("TOCPHA",     new RecipeApiResponse.Nutrient("Vitamin E", nutrientsInfo.getProtein(), "mg"));
-            nutrientsMap.put("VITK1",      new RecipeApiResponse.Nutrient("Vitamin K", nutrientsInfo.getProtein(), "mg"));
+            NUTRIENT_NAMES.forEach((key, name) -> {
+                Function<NutrientsInfo, Double> valueAccessor = NUTRIENT_VALUE_ACCESSORS.get(key);
+                String unit = NUTRIENT_UNITS.get(key);
+                Double value = valueAccessor.apply(nutrientsInfo);
+                if (value != null) {
+                    nutrientsMap.put(key, new RecipeApiResponse.Nutrient(name, value, unit));
+                }
+            });
         }
         return nutrientsMap;
     }

@@ -30,7 +30,6 @@ edamam:
     app-id: "f4c412e5"
     app-key: "9c7b4bc458dbd46fb4cf30d0155bac42"
 
-spoonacular:
-  api:
-    base-url: "https://api.spoonacular.com/recipes/complexSearch"
-    api-key: "9c2121c11b0640009a9b0d78e804b859"
+logging:
+  level:
+    com.upm.momcarerecommendation: Debug

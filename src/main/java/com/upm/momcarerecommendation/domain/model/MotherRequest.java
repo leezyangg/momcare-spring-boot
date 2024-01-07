@@ -29,7 +29,7 @@ public class MotherRequest {
     private boolean isBreastFeeding;
     private String deliveryMethod;
     // TODO: If relevant, consider adding more detailed health information in MotherRequest,
-    //  like specific health goals or conditions (for my case might be goal to increase or decrease weight)
+    //  like specific health goals or conditions
 
     // food intake by mother to calculate totalDailyIntake
     private TotalDailyIntake totalDailyIntake;

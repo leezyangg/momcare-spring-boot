@@ -8,10 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RecipeRepositoryCustomImpl implements RecipeRepositoryCustom {
     @PersistenceContext
@@ -24,49 +21,59 @@ public class RecipeRepositoryCustomImpl implements RecipeRepositoryCustom {
         Root<RecipeEntity> recipe = query.from(RecipeEntity.class);
         List<Predicate> predicates = new ArrayList<>();
 
-
-        // add healthLabels Predicates
-        if (criteria.containsKey("healthLabels")) {
-            List<String> healthLabels = ((List<String>) criteria.get("healthLabels"))
-                    .stream()
-                    .map(this::mapDroolsLabelToDBField)
-                    .toList();
-
-            Predicate healthLabelsPredicate = criteriaBuilder.conjunction();
-            for (String label : healthLabels) {
-                healthLabelsPredicate = criteriaBuilder.and(healthLabelsPredicate, criteriaBuilder.isMember(label, recipe.get("healthLabels")));
-            }
-            predicates.add(healthLabelsPredicate);
-        }
-
-        // add dietLabels Predicates
-        if (criteria.containsKey("dietLabels")) {
-            List<String> dietLabels = ((List<String>) criteria.get("dietLabels"))
-                    .stream()
-                    .map(this::mapDroolsLabelToDBField)
-                    .toList();
-
-            Predicate dietLabelsPredicate = criteriaBuilder.conjunction();
-            for (String label : dietLabels) {
-                dietLabelsPredicate = criteriaBuilder.and(dietLabelsPredicate, criteriaBuilder.isMember(label, recipe.get("dietLabels")));
-            }
-            predicates.add(dietLabelsPredicate);
-        }
-
+        // Adding Predicates
+        addHealthLabelPredicates(criteria, criteriaBuilder, recipe, predicates);
+        addDietLabelPredicates(criteria, criteriaBuilder, recipe, predicates);
         addIngredientExclusionPredicates(criteria, criteriaBuilder, recipe, predicates);        // having minor bug --> we could only exclude the recipe having exactly thing we specified
         addCaloriesPredicates(criteria, criteriaBuilder, recipe, predicates);
         addNutritionalPredicates(criteria, criteriaBuilder, recipe, predicates);
 
         query.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
-
-        // Create the query and set the maximum number of results
         TypedQuery<RecipeEntity> typedQuery = entityManager.createQuery(query);
         typedQuery.setMaxResults(10);
-
         return typedQuery.getResultList();
     }
 
 
+    private void addHealthLabelPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
+        if (criteria.containsKey("healthLabels")) {
+            Object rawHealthLabels = criteria.get("healthLabels");
+            if (rawHealthLabels instanceof List<?> rawList) {
+                if (!rawList.isEmpty() && rawList.get(0) instanceof String) {
+                    List<String> healthLabels = rawList.stream()
+                            .map(Object::toString)
+                            .map(this::mapDroolsLabelToDBField)
+                            .toList();
+
+                    Predicate healthLabelsPredicate = criteriaBuilder.conjunction();
+                    for (String label : healthLabels) {
+                        healthLabelsPredicate = criteriaBuilder.and(healthLabelsPredicate, criteriaBuilder.isMember(label, recipe.get("healthLabels")));
+                    }
+                    predicates.add(healthLabelsPredicate);
+                }
+            }
+        }
+    }
+
+    private void addDietLabelPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
+        if (criteria.containsKey("dietLabels")) {
+            Object rawDietLabels = criteria.get("dietLabels");
+            if (rawDietLabels instanceof List<?> rawList) {
+                if (!rawList.isEmpty() && rawList.get(0) instanceof String) {
+                    List<String> dietLabels = rawList.stream()
+                            .map(Object::toString)
+                            .map(this::mapDroolsLabelToDBField)
+                            .toList();
+
+                    Predicate dietLabelsPredicate = criteriaBuilder.conjunction();
+                    for (String label : dietLabels) {
+                        dietLabelsPredicate = criteriaBuilder.and(dietLabelsPredicate, criteriaBuilder.isMember(label, recipe.get("dietLabels")));
+                    }
+                    predicates.add(dietLabelsPredicate);
+                }
+            }
+        }
+    }
 
     private void addNutritionalPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
         criteria.forEach((key, value) -> {
@@ -91,88 +98,86 @@ public class RecipeRepositoryCustomImpl implements RecipeRepositoryCustom {
 
     private void addCaloriesPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
         if (criteria.containsKey("calories")) {
-            Object value = criteria.get("calories");
-            if (value instanceof List) {
-                List<Range> ranges = (List<Range>) value;
+            Object rawCaloriesValue = criteria.get("calories");
+            if (rawCaloriesValue instanceof List<?> rawList) {
+                if (!rawList.isEmpty() && rawList.get(0) instanceof Range) {
+                    List<Range> ranges = rawList.stream()
+                            .filter(Range.class::isInstance)
+                            .map(Range.class::cast)
+                            .toList();
 
-                Expression<Double> calories = recipe.get("calories");
-                Expression<Double> yield = recipe.get("yield");
-                Expression<Number> caloriesPerYield = criteriaBuilder.quot(calories, yield);
-                Expression<Double> caloriesPerYieldDouble = caloriesPerYield.as(Double.class);
+                    Expression<Double> calories = recipe.get("calories");
+                    Expression<Double> yield = recipe.get("yield");
+                    Expression<Number> caloriesPerYield = criteriaBuilder.quot(calories, yield);
+                    Expression<Double> caloriesPerYieldDouble = caloriesPerYield.as(Double.class);
 
-                for (Range range : ranges) {
-                    if (range.getMin() != null && range.getMax() != null) {
-                        predicates.add(criteriaBuilder.between(caloriesPerYieldDouble, range.getMin(), range.getMax()));
-                    } else if (range.getMin() != null) {
-                        predicates.add(criteriaBuilder.ge(caloriesPerYieldDouble, range.getMin()));
-                    } else if (range.getMax() != null) {
-                        predicates.add(criteriaBuilder.le(caloriesPerYieldDouble, range.getMax()));
+                    for (Range range : ranges) {
+                        if (range.getMin() != null && range.getMax() != null) {
+                            predicates.add(criteriaBuilder.between(caloriesPerYieldDouble, range.getMin(), range.getMax()));
+                        } else if (range.getMin() != null) {
+                            predicates.add(criteriaBuilder.ge(caloriesPerYieldDouble, range.getMin()));
+                        } else if (range.getMax() != null) {
+                            predicates.add(criteriaBuilder.le(caloriesPerYieldDouble, range.getMax()));
+                        }
                     }
                 }
             }
-
         }
     }
 
     private void addIngredientExclusionPredicates(Map<String, Object> criteria, CriteriaBuilder criteriaBuilder, Root<RecipeEntity> recipe, List<Predicate> predicates) {
         if (criteria.containsKey("ingredientLines")) {
-            List<String> excludedIngredients = (List<String>) criteria.get("ingredientLines");
-            for (String ingredientToBeExcluded : excludedIngredients) {
-                predicates.add(criteriaBuilder.isNotMember(ingredientToBeExcluded, recipe.get("ingredientLines")));
+            Object rawExcludedIngredients = criteria.get("ingredientLines");
+            if (rawExcludedIngredients instanceof List<?> rawList) {
+                if (!rawList.isEmpty() && rawList.get(0) instanceof String) {
+                    List<String> excludedIngredients = rawList.stream()
+                            .map(Object::toString)
+                            .toList();
+
+                    for (String ingredientToBeExcluded : excludedIngredients) {
+                        predicates.add(criteriaBuilder.isNotMember(ingredientToBeExcluded, recipe.get("ingredientLines")));
+                    }
+                }
             }
         }
     }
 
-    private String mapNutrientKeyToDBField(String nutrientKey) {
-        Map<String, String> nutrientFieldMapping = new HashMap<>();
-        nutrientFieldMapping.put("nutrients[FAT]", "fat");
-        nutrientFieldMapping.put("nutrients[CHOCDF]", "carbs");
-        nutrientFieldMapping.put("nutrients[FIBTG]", "fiber");
-        nutrientFieldMapping.put("nutrients[PROCNT]", "protein");
-        nutrientFieldMapping.put("nutrients[NA]", "sodium");
-        nutrientFieldMapping.put("nutrients[CA]", "calcium");
-        nutrientFieldMapping.put("nutrients[MG]", "magnesium");
-        nutrientFieldMapping.put("nutrients[FE]", "iron");
-        nutrientFieldMapping.put("nutrients[ZN]", "zinc");
-        nutrientFieldMapping.put("nutrients[P]", "phosphorus");
-        nutrientFieldMapping.put("nutrients[VITA_RAE]", "vitaminA");
-        nutrientFieldMapping.put("nutrients[VITC]", "vitaminC");
-        nutrientFieldMapping.put("nutrients[VITB6A]", "vitaminB6");
-        nutrientFieldMapping.put("nutrients[FOLAC]", "folicAcid");
-        nutrientFieldMapping.put("nutrients[VITB12]", "vitaminB12");
-        nutrientFieldMapping.put("nutrients[VITD]", "vitaminD");
-        nutrientFieldMapping.put("nutrients[TOCPHA]", "vitaminE");
-        nutrientFieldMapping.put("nutrients[VITK1]", "vitaminK");
-        nutrientFieldMapping.put("calories", "calories");
 
-        return nutrientFieldMapping.get(nutrientKey);
+
+    private static final Map<String, String> NUTRIENT_FIELD_MAPPING;
+    private static final Map<String, String> LABEL_MAPPINGS;
+
+    static {
+        Map<String, String> tempMap;
+        NUTRIENT_FIELD_MAPPING = Map.ofEntries(Map.entry("nutrients[FAT]", "fat"), Map.entry("nutrients[CHOCDF]", "carbs"), Map.entry("vegetarian", "Vegetarian"), Map.entry("vegan", "Vegan"), Map.entry("nutrients[FIBTG]", "fiber"), Map.entry("nutrients[PROCNT]", "protein"), Map.entry("nutrients[NA]", "sodium"), Map.entry("nutrients[CA]", "calcium"), Map.entry("nutrients[MG]", "magnesium"), Map.entry("nutrients[FE]", "iron"), Map.entry("nutrients[ZN]", "zinc"), Map.entry("nutrients[P]", "phosphorus"), Map.entry("nutrients[VITA_RAE]", "vitaminA"), Map.entry("nutrients[VITC]", "vitaminC"), Map.entry("nutrients[VITB6A]", "vitaminB6"), Map.entry("nutrients[FOLAC]", "folicAcid"), Map.entry("nutrients[VITB12]", "vitaminB12"), Map.entry("nutrients[VITD]", "vitaminD"), Map.entry("nutrients[TOCPHA]", "vitaminE"), Map.entry("nutrients[VITK1]", "vitaminK"));
+
+        tempMap = new HashMap<>();
+        tempMap.put("vegetarian", "Vegetarian");
+        tempMap.put("vegan", "Vegan");
+        tempMap.put("pecatarian", "Pescatarian");
+        tempMap.put("kosher", "Kosher");
+        tempMap.put("soy-free", "Soy-Free");
+        tempMap.put("wheat-free", "Wheat-Free");
+        tempMap.put("dairy-free", "Dairy-Free");
+        tempMap.put("pork-free", "Pork-Free");
+        tempMap.put("egg-free", "Egg-Free");
+        tempMap.put("fish-free", "Fish-Free");
+        tempMap.put("shellfish-free", "Shellfish-Free");
+        tempMap.put("red-meat-free", "Red-Meat-Free");
+        tempMap.put("peanut-free", "Peanut-Free");
+        tempMap.put("tree-nut-free", "Tree-Nut-Free");
+        tempMap.put("low-sodium", "Low-Sodium");
+        tempMap.put("low-carb", "Low-Carb");
+        tempMap.put("low-sugar", "Low-Sugar");
+        tempMap.put("low-potassium", "Low Potassium");
+        LABEL_MAPPINGS = Collections.unmodifiableMap(tempMap);
     }
 
-    // TODO: add more mapping here
+    private String mapNutrientKeyToDBField(String nutrientKey) {
+        return NUTRIENT_FIELD_MAPPING.getOrDefault(nutrientKey, nutrientKey);
+    }
+
     private String mapDroolsLabelToDBField(String droolsLabel) {
-        Map<String, String> labelMappings = new HashMap<>();
-
-        labelMappings.put("vegetarian", "Vegetarian");
-        labelMappings.put("vegan", "Vegan");
-        labelMappings.put("pecatarian", "Pescatarian");
-        labelMappings.put("kosher", "Kosher");
-
-        labelMappings.put("soy-free", "Soy-Free");
-        labelMappings.put("wheat-free", "Wheat-Free");
-        labelMappings.put("dairy-free", "Dairy-Free");
-        labelMappings.put("pork-free", "Pork-Free");
-        labelMappings.put("egg-free", "Egg-Free");
-        labelMappings.put("fish-free", "Fish-Free");
-        labelMappings.put("shellfish-free", "Shellfish-Free");
-        labelMappings.put("red-meat-free", "Red-Meat-Free");
-        labelMappings.put("peanut-free", "Peanut-Free");
-        labelMappings.put("tree-nut-free", "Tree-Nut-Free");
-
-        labelMappings.put("low-sodium", "Low-Sodium");
-        labelMappings.put("low-carb", "Low-Carb");
-        labelMappings.put("low-sugar", "Low-Sugar");
-        labelMappings.put("low-potassium", "Low Potassium");
-
-        return labelMappings.getOrDefault(droolsLabel, droolsLabel);
+        return LABEL_MAPPINGS.getOrDefault(droolsLabel, droolsLabel);
     }
 }
