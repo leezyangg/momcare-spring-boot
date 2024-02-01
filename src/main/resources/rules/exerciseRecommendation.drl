@@ -4,24 +4,30 @@ import com.upm.momcarerecommendation.domain.model.MotherRequest
 import com.upm.momcarerecommendation.domain.model.ExerciseRecommend
 
 rule "First Trimester Pregnant Exercise"
+salience 1
     when
         $mother : MotherRequest( isPregnant() && trimester == 1 )
+        not ExerciseRecommend( databaseField == "impactLevel", databaseField == "intensityLevel" )
     then
         insert(new ExerciseRecommend("impactLevel", "Low"));
         insert(new ExerciseRecommend("intensityLevel", "Moderate"));
         insert(new ExerciseRecommend("suitableForPregnancyTrimester", "All Trimester"));
 end
 rule "Second Trimester Pregnant Exercise"
+salience 5
     when
         $mother : MotherRequest( isPregnant() && trimester == 2 )
+        not ExerciseRecommend( databaseField == "impactLevel", databaseField == "intensityLevel" )
     then
         insert(new ExerciseRecommend("impactLevel", "Low"));
         insert(new ExerciseRecommend("intensityLevel", "Moderate"));
         insert(new ExerciseRecommend("suitableForPregnancyTrimester", "2 Trimester"));
 end
 rule "Third Trimester Pregnant Exercise"
+salience 10
     when
         $mother : MotherRequest( isPregnant() && trimester == 3 )
+        not ExerciseRecommend( databaseField == "impactLevel", databaseField == "intensityLevel" )
     then
         insert(new ExerciseRecommend("impactLevel", "Low"));
         insert(new ExerciseRecommend("intensityLevel", "Low"));

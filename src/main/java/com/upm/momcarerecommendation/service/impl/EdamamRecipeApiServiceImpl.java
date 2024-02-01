@@ -15,7 +15,6 @@ import java.util.Map;
 
 @Service
 public class EdamamRecipeApiServiceImpl implements RecipeApiService {
-
     private final WebClient webClient;
 
     @Value("${edamam.api.base-url}")
@@ -24,14 +23,14 @@ public class EdamamRecipeApiServiceImpl implements RecipeApiService {
     private String appId;
     @Value("${edamam.api.app-key}")
     private String appKey;
-
     public EdamamRecipeApiServiceImpl(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
+
     @Override
     public Mono<RecipeApiResponse> getRecipes(Map<String, List<String>> foodQueryMap) {
-        MultiValueMap<String, String> foodQueryParam = getStringStringMultiValueMap();
+        MultiValueMap<String, String> foodQueryParam = getInitialParams();
 
         for (Map.Entry<String, List<String>> entry : foodQueryMap.entrySet()) {
             for (String value : entry.getValue()) {
@@ -41,7 +40,6 @@ public class EdamamRecipeApiServiceImpl implements RecipeApiService {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParams(foodQueryParam);
-
         String url = uriBuilder.build().toString();
 
         return webClient.get()
@@ -50,8 +48,10 @@ public class EdamamRecipeApiServiceImpl implements RecipeApiService {
                 .bodyToMono(RecipeApiResponse.class);
     }
 
-    // set the necessary param into the MultiValueMap as the queryParam
-    private MultiValueMap<String, String> getStringStringMultiValueMap() {
+
+
+    private MultiValueMap<String, String> getInitialParams() {
+        // set the necessary param into the MultiValueMap as the queryParam
         MultiValueMap<String, String> foodQueryParam = new LinkedMultiValueMap<>();
 
         // remember to insert the API_KEY & APP_ID from the Edamam API &
@@ -59,7 +59,6 @@ public class EdamamRecipeApiServiceImpl implements RecipeApiService {
         foodQueryParam.add("app_id", appId);
         foodQueryParam.add("app_key", appKey);
 
-        // by default both of these field are set as this
         foodQueryParam.add("type", "any");
         foodQueryParam.add("random", "true");
 

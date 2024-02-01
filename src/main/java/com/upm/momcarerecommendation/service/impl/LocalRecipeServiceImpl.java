@@ -16,10 +16,17 @@ import java.util.stream.Collectors;
 public class LocalRecipeServiceImpl implements LocalRecipeService {
     private final RecipeRepository recipeRepository;
     private final Mapper<RecipeApiResponse.Recipe, RecipeEntity> recipeMapper;
-
     public LocalRecipeServiceImpl(RecipeRepository recipeRepository, Mapper<RecipeApiResponse.Recipe, RecipeEntity> recipeMapper) {
         this.recipeRepository = recipeRepository;
         this.recipeMapper = recipeMapper;
+    }
+
+
+    @Override
+    @Transactional
+    public List<RecipeEntity> findRecipesByCriteria(Map<String, Object> criteria) {
+        // dynamic query local database using JPA Criteria API
+        return recipeRepository.findRecipesByCriteria(criteria);
     }
 
     @Override
@@ -34,15 +41,39 @@ public class LocalRecipeServiceImpl implements LocalRecipeService {
                 .stream()
                 .map(RecipeApiResponse.Hit::getRecipe)
                 .map(recipeMapper::mapToEntity)
-                .filter(recipe -> !recipeRepository.existsByLabel(recipe.getLabel()))
+                .filter(recipeEntity -> !recipeRepository.existsByLabel(recipeEntity.getLabel()))
                 .collect(Collectors.toList());
         saveRecipes(recipeEntities);
     }
 
-    @Override
+
+
+
+
+
+
+
+
+/*    @Override
     @Transactional
-    public List<RecipeEntity> findRecipesByCriteria(Map<String, Object> criteria) {
-        return recipeRepository.findRecipesByCriteria(criteria);
+    public void processAndSaveRecipes(RecipeApiResponse recipeApiResponse) {
+        List<RecipeEntity> recipeEntities = recipeApiResponse.getHits()
+                .stream()
+                .map(RecipeApiResponse.Hit::getRecipe)
+                .map(recipe -> {
+                    RecipeEntity recipeEntity = recipeMapper.mapToEntity(recipe);
+                    if (!recipeRepository.existsByLabel(recipeEntity.getLabel())) { saveImageAndSetPath(recipeEntity); }
+                    return recipeEntity;
+                })
+                .collect(Collectors.toList());
+        saveRecipes(recipeEntities);
     }
 
+    private void saveImageAndSetPath(RecipeEntity recipeEntity) {
+        String imageUrl = recipeEntity.getImage();
+        String imageName = recipeEntity.getLabel();
+        String savedImagePath = imageStorageService.saveImage(imageUrl, imageName)
+                .block(); // This blocks until the image is saved, TODO: make it async
+        recipeEntity.setImage(savedImagePath);
+    }*/
 }

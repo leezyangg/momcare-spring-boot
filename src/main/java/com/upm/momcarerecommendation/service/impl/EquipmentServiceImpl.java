@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class EquipmentServiceImpl implements EquipmentService {
     private final EquipmentRepository equipmentRepository;
+
     public EquipmentServiceImpl(EquipmentRepository equipmentRepository) {
         this.equipmentRepository = equipmentRepository;
     }
+
 
     @Override
     public Equipment saveEquipment(Equipment equipment) {

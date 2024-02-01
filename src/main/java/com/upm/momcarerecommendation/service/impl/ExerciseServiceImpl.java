@@ -23,6 +23,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     @Override
     public List<Exercise> findExerciseByCriteria(Map<String, List<String>> criteria) {
+        // dynamic query local database using JPA Criteria API
         return exerciseRepository.findExercisesBasedOnCriteria(criteria);
     }
 }

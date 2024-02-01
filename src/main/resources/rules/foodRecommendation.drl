@@ -48,7 +48,7 @@ rule "Postpartum and no Lactation"
     when
         $mother : MotherRequest( !isPregnant(), !isBreastFeeding() )
     then
-        insert(new Threshold("Protein", Double.valueOf(46), Double.valueOf(500)));                     // no guidelines found
+        insert(new Threshold("Protein", Double.valueOf(46), Double.valueOf(500)));
         insert(new Threshold("Vitamin D", Double.valueOf(5), Double.valueOf(100)));
         insert(new Threshold("Vitamin B12", Double.valueOf(2.4), null));
         insert(new Threshold("Folic acid", Double.valueOf(400), Double.valueOf(1000)));
@@ -295,6 +295,24 @@ when
 then
     insert(new NutritionRecommend("nutrients[PROCNT]", String.valueOf($minAmount/3)+"-"+String.valueOf($maxAmount)));
 end
+rule "Protein Param after reaching required"
+when
+    $mother : MotherRequest( $totalIntake : totalDailyIntake )
+    $threshold : Threshold( nutrition == "Protein", $maxAmount : maximumAmount, $requiredAmount : requiredAmount )
+    eval( $totalIntake != null && $totalIntake.getTotalProteins() < $maxAmount && $totalIntake.getTotalProteins() > $requiredAmount)
+then
+    double remainingRequired = $maxAmount - $totalIntake.getTotalProteins();
+    insert(new NutritionRecommend("nutrients[PROCNT]", String.valueOf(remainingRequired)));
+end
+rule "Protein Param after exceed maximum"
+when
+    $mother : MotherRequest( $totalIntake : totalDailyIntake )
+    $threshold : Threshold( nutrition == "Protein", $maxAmount : maximumAmount)
+    eval( $totalIntake != null && $totalIntake.getTotalProteins() > $maxAmount )
+then
+    insert(new NutritionRecommend("nutrients[PROCNT]", "10"));
+end
+
 
 
 /*

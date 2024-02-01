@@ -16,11 +16,11 @@ import java.util.*;
 public class RuleServiceImpl implements RuleService {
     private final KieContainer dietKieContainer;
     private final KieContainer exerciseKieContainer;
-
     public RuleServiceImpl(@Qualifier("dietKieContainer")KieContainer dietKieContainer, @Qualifier("exerciseKieContainer")KieContainer exerciseKieContainer) {
         this.dietKieContainer = dietKieContainer;
         this.exerciseKieContainer = exerciseKieContainer;
     }
+
 
     @Override
     public Map<String, List<String>> getRecipeParams(MotherRequest motherRequest) {
@@ -32,8 +32,7 @@ public class RuleServiceImpl implements RuleService {
 
         Collection<?> nutritionRecommendation = kieSession.getObjects(o-> o.getClass() == NutritionRecommend.class);
         Collection<?> foodRecommendation = kieSession.getObjects(o-> o.getClass() == FoodRecommend.class);
-
-        return getStringStringMap(nutritionRecommendation, foodRecommendation);
+        return extractRecipeParams(nutritionRecommendation, foodRecommendation);
     }
 
     @Override
@@ -45,13 +44,13 @@ public class RuleServiceImpl implements RuleService {
         kieSession.dispose();
 
         Collection<?> exerciseRecommendations = kieSession.getObjects(o -> o instanceof ExerciseRecommend);
-        return extractQueryCriteria(exerciseRecommendations);
+        return extractExerciseParams(exerciseRecommendations);
     }
 
 
 
-    // helper method for getExerciseParam
-    private Map<String, List<String>> extractQueryCriteria(Collection<?> exerciseRecommendations) {
+    // Helper method for extracting Object into hashMap format for query purpose
+    private Map<String, List<String>> extractExerciseParams(Collection<?> exerciseRecommendations) {
         Map<String, List<String>> criteria = new HashMap<>();
 
         for (Object recommendation : exerciseRecommendations) {
@@ -63,9 +62,7 @@ public class RuleServiceImpl implements RuleService {
         return criteria;
     }
 
-
-    // helper method for getRecipeParam
-    private static Map<String, List<String>> getStringStringMap(Collection<?> nutritionRecommendation, Collection<?> foodRecommendation) {
+    private static Map<String, List<String>> extractRecipeParams(Collection<?> nutritionRecommendation, Collection<?> foodRecommendation) {
         Map<String, List<String>> recommendationMap = new HashMap<>();
 
         for (Object recommendation : nutritionRecommendation) {
@@ -83,5 +80,4 @@ public class RuleServiceImpl implements RuleService {
         }
         return recommendationMap;
     }
-
 }

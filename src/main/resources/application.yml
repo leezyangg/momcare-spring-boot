@@ -15,7 +15,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update        # change to "update" --> if you want to keep database for every web application restart
+      ddl-auto: update          # change to "update" --> if you want to keep database for every web application restart
     show-sql: false             #      "create-drop" --> for recreating & drop every time for every restart (Debugging)
     properties:
       hibernate:
@@ -32,4 +32,4 @@ edamam:
 
 logging:
   level:
-    com.upm.momcarerecommendation: Debug
+    com.upm.momcarerecommendation: info

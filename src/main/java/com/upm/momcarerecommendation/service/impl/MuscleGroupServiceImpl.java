@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class MuscleGroupServiceImpl implements MuscleGroupService {
     private final MuscleGroupRepository muscleGroupRepository;
-
     public MuscleGroupServiceImpl(MuscleGroupRepository muscleGroupRepository) {
         this.muscleGroupRepository = muscleGroupRepository;
     }
+
 
     @Override
     public MuscleGroup saveMuscleGroup(MuscleGroup muscleGroup) {

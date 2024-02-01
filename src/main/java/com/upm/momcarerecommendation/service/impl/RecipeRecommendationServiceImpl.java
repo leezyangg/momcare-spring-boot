@@ -26,7 +26,6 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
     private final RecipeApiService recipeApiService;
     private final LocalRecipeService localRecipeService;
     private final Mapper<RecipeApiResponse.Recipe, RecipeEntity> recipeMapper;
-
     public RecipeRecommendationServiceImpl(RuleService ruleService, RecipeApiService recipeApiService, LocalRecipeService localRecipeService, Mapper<RecipeApiResponse.Recipe, RecipeEntity> recipeMapper) {
         this.ruleService = ruleService;
         this.recipeApiService = recipeApiService;
@@ -42,9 +41,9 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
         List<RecipeEntity> localRecipeEntities = localRecipeService.findRecipesByCriteria(dbQueryParams);
 
         if (localRecipeEntities.size() == 10) {
-            logger.info("DbQueryParams: "+ dbQueryParams);
             RecipeApiResponse localResponse = convertToRecipeApiResponse(localRecipeEntities);
-            return Mono.just(localResponse);
+            return Mono.just(localResponse)
+                    .doOnNext(response -> logger.info("DbQueryParams: "+ dbQueryParams));
 
         } else {
             logger.info("FoodRecommendParam: "+ apiQueryParams);
@@ -63,7 +62,6 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
 
 
 
-
     private static final Map<String, String> KEY_MAPPING = Map.of(
             "health", "healthLabels",
             "diet", "dietLabels",
@@ -79,7 +77,7 @@ public class RecipeRecommendationServiceImpl implements RecipeRecommendationServ
             String dbKey = KEY_MAPPING.getOrDefault(droolsKey, droolsKey);
 
             if (dbKey.equals("healthLabels") || dbKey.equals("dietLabels") || dbKey.equals("ingredientLines")) {
-                dbQueryParams.put(dbKey, values);
+                dbQueryParams.put(dbKey, values); // for explicit value of mapping
 
             } else {
                 List<Range> ranges = new ArrayList<>();

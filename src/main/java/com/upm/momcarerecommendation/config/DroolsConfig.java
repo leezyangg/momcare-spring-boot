@@ -28,12 +28,15 @@ public class DroolsConfig {
 
 
     private KieContainer getKieContainer(String rulePath) {
+
         // Get Base Kie Container
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
         kieFileSystem.write(ResourceFactory.newClassPathResource(DISEASE_DETECTION_RULES_PATH));
         kieFileSystem.write(ResourceFactory.newClassPathResource(rulePath));
+
         KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem);
         kieBuilder.buildAll();
+
         KieModule kieModule = kieBuilder.getKieModule();
         return kieServices.newKieContainer(kieModule.getReleaseId());
     }

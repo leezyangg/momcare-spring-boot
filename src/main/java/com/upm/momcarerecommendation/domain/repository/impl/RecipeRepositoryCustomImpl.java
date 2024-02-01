@@ -24,7 +24,7 @@ public class RecipeRepositoryCustomImpl implements RecipeRepositoryCustom {
         // Adding Predicates
         addHealthLabelPredicates(criteria, criteriaBuilder, recipe, predicates);
         addDietLabelPredicates(criteria, criteriaBuilder, recipe, predicates);
-        addIngredientExclusionPredicates(criteria, criteriaBuilder, recipe, predicates);        // having minor bug --> we could only exclude the recipe having exactly thing we specified
+        addIngredientExclusionPredicates(criteria, criteriaBuilder, recipe, predicates);
         addCaloriesPredicates(criteria, criteriaBuilder, recipe, predicates);
         addNutritionalPredicates(criteria, criteriaBuilder, recipe, predicates);
 

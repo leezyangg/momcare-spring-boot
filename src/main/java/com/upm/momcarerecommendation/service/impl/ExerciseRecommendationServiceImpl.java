@@ -26,6 +26,7 @@ public class ExerciseRecommendationServiceImpl implements ExerciseRecommendation
         this.exerciseMapper = exerciseMapper;
     }
 
+
     @Override
     public List<ExerciseDto> getExerciseRecommendations(MotherRequest motherRequest) {
         Map<String, List<String>> exerciseQueryParam = ruleService.getExerciseParams(motherRequest);
